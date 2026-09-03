@@ -241,7 +241,10 @@ QB.callback.register('qbbossmenu:server:openStash', function(src)
     if not ok then return false, err end
     local id = ('qbbossmenu:%s'):format(job.name)
     exports.qbinventory:RegisterStash(id, (jobDefinition(job.name).label or job.name) .. ' Boss Stash', Config.stash.slots, Config.stash.maxWeight, false, { [job.name] = 1 })
-    return exports.qbinventory:openInventory(src, 'stash', id)
+    -- `stashOpen`, not `openInventory`: qbinventory's server realm exports
+    -- `OpenInventory`/`stashOpen`, and the lowercase `openInventory` is a
+    -- CLIENT-realm export, so this call was resolving to nothing at all.
+    return exports.qbinventory:stashOpen(src, id)
 end)
 
 QB.callback.register('qbbossmenu:server:giveBonus', function(src, data)
@@ -271,6 +274,26 @@ exports('addBusinessMoney', function(jobName, amount, reason)
     if writeErr then return false, writeErr end
     row.balance = row.balance + amount
     addLog(row, ('Business received $%d%s.'):format(amount, reason and (' (' .. tostring(reason):sub(1, 100) .. ')') or ''))
+    return true
+end)
+
+---Debits a job's business balance. The mirror of `addBusinessMoney`, for a
+---trusted business/revenue resource paying an employee out of the company
+---account (a stocking commission, a supplier invoice). It refuses to overdraw:
+---the `balance >= ?` guard is in the statement itself, so two concurrent
+---debits cannot both succeed against the same funds.
+exports('removeBusinessMoney', function(jobName, amount, reason)
+    if not ready or not jobDefinition(jobName) then return false, 'unknown job' end
+    amount = math.floor(tonumber(amount) or 0)
+    if amount <= 0 then return false, 'amount must be positive' end
+    local row, err = ensureJob(jobName)
+    if not row then return false, err end
+    if row.balance < amount then return false, 'insufficient business funds' end
+    local affected, writeErr = QB.sql.update('UPDATE `qbbossmenu_jobs` SET `balance` = `balance` - ? WHERE `job` = ? AND `balance` >= ?', { amount, jobName, amount })
+    if writeErr then return false, writeErr end
+    if not affected or affected < 1 then return false, 'insufficient business funds' end
+    row.balance = row.balance - amount
+    addLog(row, ('Business paid out $%d%s.'):format(amount, reason and (' (' .. tostring(reason):sub(1, 100) .. ')') or ''))
     return true
 end)
 
