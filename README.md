@@ -13,3 +13,11 @@ The resource migrates `qbbossmenu_jobs` on start. Job balances are new,
 resource-owned balances; a trusted revenue resource can credit one through
 `exports.qbbossmenu:addBusinessMoney(job, amount, reason)`. Read a balance with
 `exports.qbbossmenu:getBusinessBalance(job)`.
+
+The browser UI is React 18, TypeScript, Vite, Lucide, and plain CSS backed by
+the shared qbtheme tokens. Its Home, Applications, Application Form,
+Employees, Bonus, activity/balance, and stash workflows use qbbossmenu-owned
+NUI callbacks; qblib remains responsible only for non-NUI helpers.
+
+From `web/`, use `pnpm typecheck`, `pnpm test`, and `pnpm build`. The generated
+`web/build` directory is served by FiveM and remains committed.

@@ -1,4 +1,6 @@
 local RESOURCE = GetCurrentResourceName()
+local nuiReady = false
+local pendingMenu
 
 local function notify(message, type_)
     QB.notify.send({ title = 'Boss Menu', message = message, type = type_ or 'info' })
@@ -20,7 +22,11 @@ local function openBossMenu()
     local data, err = callback('qbbossmenu:server:getJobData')
     if not data then return notify(err or 'You cannot open this boss menu.', 'error') end
     SetNuiFocus(true, true)
-    SendNUIMessage({ action = 'openBossMenu', data = data })
+    if nuiReady then
+        SendNUIMessage({ action = 'openBossMenu', data = data })
+    else
+        pendingMenu = data
+    end
 end
 
 local function applicationFields(questions)
@@ -59,22 +65,52 @@ end, false)
 exports('openBossMenu', openBossMenu)
 exports('openApplication', openApplication)
 
-QB.nui.registerCallback('hideUI', function()
+-- This resource owns its NUI frame. Registering through QB.nui would create
+-- callbacks in qblib's VM and at the wrong https:// resource endpoint.
+local function registerNuiCallback(name, handler)
+    RegisterNUICallback(name, function(data, cb)
+        local ok, result = pcall(handler, type(data) == 'table' and data or {})
+        if not ok then
+            notify('The boss menu action failed.', 'error')
+            print(('[qbbossmenu] NUI callback %s failed: %s'):format(name, result))
+            cb(false)
+            return
+        end
+        cb(result == nil and true or result)
+    end)
+end
+
+registerNuiCallback('qbbossmenu:ready', function()
+    nuiReady = true
+    QBTheme.refresh()
+    if pendingMenu then
+        SendNUIMessage({ action = 'openBossMenu', data = pendingMenu })
+        pendingMenu = nil
+    end
+    return true
+end)
+
+registerNuiCallback('hideUI', function()
+    pendingMenu = nil
     SetNuiFocus(false, false)
     return true
 end)
 
 for _, action in ipairs({ 'acceptApplicant', 'denyApplicant', 'addQuestion', 'editQuestion', 'removeQuestion', 'fireEmployee', 'setRank', 'giveBonus' }) do
-    QB.nui.registerCallback(action, function(data)
+    registerNuiCallback(action, function(data)
         local ok, err = callback('qbbossmenu:server:' .. action, data)
         if not ok and err then notify(err, 'error') end
         return ok == true
     end)
 end
 
-QB.nui.registerCallback('openStash', function()
+registerNuiCallback('openStash', function()
+    SetNuiFocus(false, false)
     local ok, err = callback('qbbossmenu:server:openStash')
-    if not ok then notify(err or 'Could not open the stash.', 'error') end
+    if not ok then
+        SetNuiFocus(true, true)
+        notify(err or 'Could not open the stash.', 'error')
+    end
     return ok == true
 end)
 
