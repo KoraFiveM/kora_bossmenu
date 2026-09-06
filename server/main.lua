@@ -92,13 +92,32 @@ local function employeeRows(jobName)
     return result
 end
 
+local function isEmployee(citizenid, jobName)
+    local row, err = QB.sql.single([[SELECT p.`job`, m.`jobs`
+        FROM `players` p
+        LEFT JOIN `qbmultijob_jobs` m ON m.`citizenid` = p.`citizenid`
+        WHERE p.`citizenid` = ? AND p.`deleted_at` IS NULL]], { citizenid })
+    if err or not row then return false end
+
+    local active = decode(row.job, {})
+    if active.name == jobName then return true end
+    local roster = decode(row.jobs, {})
+    return type(roster[jobName]) == 'table'
+end
+
 local function updateRoster(citizenid, jobName, grade)
     local row, err = QB.sql.single('SELECT `jobs` FROM `qbmultijob_jobs` WHERE `citizenid` = ?', { citizenid })
     if err then return false, 'Could not load employee jobs.' end
     local roster = decode(row and row.jobs, {})
     if grade then roster[jobName] = { name = jobName, level = grade } else roster[jobName] = nil end
     local _, writeErr = QB.sql.upsert('qbmultijob_jobs', 'citizenid', { { citizenid = citizenid, jobs = json.encode(roster) } })
-    return not writeErr, writeErr
+    if writeErr then return false, writeErr end
+
+    local online = exports.qbcore:getPlayerByCitizenId(citizenid)
+    if online and GetResourceState('qbmultijob') == 'started' then
+        exports.qbmultijob:invalidate(online.source)
+    end
+    return true
 end
 
 local function nameFor(citizenid)
@@ -251,15 +270,49 @@ QB.callback.register('qbbossmenu:server:giveBonus', function(src, data)
     local row, err = managed(src, data); if not row then return false, err end
     local amount = math.floor(tonumber(data.amount) or 0)
     if amount <= 0 or amount > row.balance or type(data.citizenid) ~= 'string' then return false, 'Invalid bonus amount.' end
+    if not isEmployee(data.citizenid, row.job) then return false, 'That person is not an employee.' end
     local target = exports.qbcore:getPlayerByCitizenId(data.citizenid)
     if not target then return false, 'Employee must be online to receive a bonus.' end
+
+    local affected, writeErr = QB.sql.update(
+        'UPDATE `qbbossmenu_jobs` SET `balance` = `balance` - ? WHERE `job` = ? AND `balance` >= ?',
+        { amount, row.job, amount }
+    )
+    if writeErr then return false, 'Could not debit the business account.' end
+    if affected ~= 1 then return false, 'The business does not have enough funds.' end
+    row.balance = row.balance - amount
+
+    local function refundBusiness()
+        local refunded, refundErr = QB.sql.update(
+            'UPDATE `qbbossmenu_jobs` SET `balance` = `balance` + ? WHERE `job` = ?',
+            { amount, row.job }
+        )
+        if not refundErr and refunded == 1 then
+            row.balance = row.balance + amount
+            return true
+        end
+        print(('^1[qbbossmenu]^7 bonus credit failed and business refund failed for %s: %s')
+            :format(row.job, tostring(refundErr or 'no row updated')))
+        return false
+    end
+
+    -- The debit yielded. Re-resolve the character before crediting this source
+    -- so a logout/character switch cannot send the bonus to somebody else.
+    target = exports.qbcore:getPlayerByCitizenId(data.citizenid)
+    if not target then
+        refundBusiness()
+        return false, 'Employee changed character before the bonus completed.'
+    end
+
     local paid, payErr = exports.qbcore:addMoney(target.source, 'bank', amount, 'boss-menu-bonus')
-    if not paid then return false, payErr or 'Could not pay bonus.' end
-    local _, writeErr = QB.sql.update('UPDATE `qbbossmenu_jobs` SET `balance` = `balance` - ? WHERE `job` = ? AND `balance` >= ?', { amount, row.job, amount })
-    if writeErr then exports.qbcore:removeMoney(target.source, 'bank', amount, 'boss-menu-bonus-rollback'); return false, 'Could not debit the business account.' end
-    row.balance = row.balance - amount; addLog(row, ('%s received a $%d bonus.'):format(nameFor(data.citizenid), amount))
+    if not paid then
+        refundBusiness()
+        return false, payErr or 'Could not pay bonus.'
+    end
+
+    addLog(row, ('%s received a $%d bonus.'):format(nameFor(data.citizenid), amount))
     return true
-end)
+end, { rateLimit = { max = 5, window = 10000 } })
 
 ---Credits a job's resource-owned business balance. Use this from a trusted
 ---business/revenue resource; player-facing deposits should still validate and
