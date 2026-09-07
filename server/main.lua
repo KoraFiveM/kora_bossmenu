@@ -110,7 +110,9 @@ local function updateRoster(citizenid, jobName, grade)
     if err then return false, 'Could not load employee jobs.' end
     local roster = decode(row and row.jobs, {})
     if grade then roster[jobName] = { name = jobName, level = grade } else roster[jobName] = nil end
-    local _, writeErr = QB.sql.upsert('qbmultijob_jobs', 'citizenid', { { citizenid = citizenid, jobs = json.encode(roster) } })
+    local _, writeErr = QB.sql.upsert('qbmultijob_jobs', 'citizenid', {
+        { pk = citizenid, cols = { jobs = json.encode(roster) } },
+    })
     if writeErr then return false, writeErr end
 
     local online = exports.qbcore:getPlayerByCitizenId(citizenid)
