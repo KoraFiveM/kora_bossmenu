@@ -14,10 +14,10 @@ resource-owned balances; a trusted revenue resource can credit one through
 `exports.qbbossmenu:addBusinessMoney(job, amount, reason)`. Read a balance with
 `exports.qbbossmenu:getBusinessBalance(job)`.
 
-The browser UI is React 18, TypeScript, Vite, Lucide, and plain CSS backed by
-the shared qbtheme tokens. Its Home, Applications, Application Form,
-Employees, Bonus, activity/balance, and stash workflows use qbbossmenu-owned
-NUI callbacks; qblib remains responsible only for non-NUI helpers.
+The management console uses qblib's AppShell for its overview, applicant
+answers, employee cards, shared action forms, question management, and activity
+timeline. qbbossmenu still owns all data, permission checks, and mutations. The
+stash action closes AppShell before handing focus to qbinventory.
 
-From `web/`, use `pnpm typecheck`, `pnpm test`, and `pnpm build`. The generated
-`web/build` directory is served by FiveM and remains committed.
+The old `web/` source and build are retained temporarily for parity review, but
+they are no longer loaded by the resource manifest.

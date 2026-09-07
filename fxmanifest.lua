@@ -8,13 +8,10 @@ version '2.0.0'
 description 'Job management, applications, employee roster, stash and bonuses for qbcore'
 
 dependency 'qblib'
-dependency 'qbtheme'
 dependency 'qbsql'
 dependency 'qbcore'
 dependency 'qbinventory'
 dependency 'qbmultijob'
-
-ui_page 'web/build/index.html'
 
 shared_scripts {
     '@qblib/init.lua',
@@ -24,13 +21,8 @@ shared_scripts {
 }
 
 server_scripts { 'server/main.lua' }
-client_scripts {
-    '@qbtheme/client/bridge.lua',
-    'client/main.lua',
-}
+client_script 'client/main.lua'
 
 files {
     'sql/001_bossmenu.sql',
-    'web/build/index.html',
-    'web/build/**/*',
 }
