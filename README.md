@@ -9,10 +9,11 @@ or legacy QBCore dependency.
 - `exports.qbbossmenu:openBossMenu()` and `exports.qbbossmenu:openApplication(job)`
   are available to attach the flows to another resource's interaction.
 
-The resource migrates `qbbossmenu_jobs` on start. Job balances are new,
-resource-owned balances; a trusted revenue resource can credit one through
-`exports.qbbossmenu:addBusinessMoney(job, amount, reason)`. Read a balance with
-`exports.qbbossmenu:getBusinessBalance(job)`.
+The resource migrates `qbbossmenu_jobs` on start for applications and activity
+only. Job society balances are owned by `qbbanking`; the boss menu reads and
+debits that account directly. The legacy `addBusinessMoney`,
+`removeBusinessMoney`, and `getBusinessBalance` exports remain as delegates to
+qbbanking for existing business resources.
 
 The management console uses qblib's AppShell for its overview, applicant
 answers, employee cards, shared action forms, question management, and activity
