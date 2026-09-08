@@ -1,5 +1,6 @@
 local APP_ID = 'qbbossmenu:management'
 local currentData
+local appActive = false
 
 local function notify(message, type_)
     QB.notify.send({ title = 'Boss Menu', message = message, type = type_ or 'info' })
@@ -192,14 +193,29 @@ local function appDefinition()
 end
 
 local function openBossMenu()
-    if QB.nui.isAppOpen(APP_ID) then return end
+    if appActive then return end
+    appActive = true
+
     CreateThread(function()
-        local data, err = callback('qbbossmenu:server:getJobData')
-        if not data then return notify(err or 'You cannot open this boss menu.', 'error') end
-        currentData = data
-        QB.nui.registerApp(appDefinition())
-        QB.nui.openApp(APP_ID)
+        local ok, err = pcall(function()
+            local data, loadError = callback('qbbossmenu:server:getJobData')
+            if not data then
+                notify(loadError or 'You cannot open this boss menu.', 'error')
+                return
+            end
+
+            currentData = data
+            QB.nui.registerApp(appDefinition())
+            QB.nui.openApp(APP_ID)
+        end)
+
         currentData = nil
+        appActive = false
+
+        if not ok then
+            print(('^1[qbbossmenu]^7 Could not open the management menu: %s'):format(tostring(err)))
+            notify('The management menu could not be opened.', 'error')
+        end
     end)
 end
 

@@ -63,7 +63,6 @@ end
 
 _G.QB = {
     nui = {
-        isAppOpen = function() return false end,
         registerApp = function(definition)
             appDefinitions[definition.id] = definition
             return definition.id

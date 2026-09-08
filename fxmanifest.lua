@@ -26,4 +26,5 @@ client_script 'client/main.lua'
 
 files {
     'sql/001_bossmenu.sql',
+    'types.lua',
 }
