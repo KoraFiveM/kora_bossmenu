@@ -81,7 +81,8 @@ local function employeeRows(jobName)
             local online = exports.qbcore:getPlayerByCitizenId(row.citizenid) ~= nil
             result[#result + 1] = {
                 citizenid = row.citizenid, name = row.name,
-                grade = gradeNumber, gradeName = grade.name, pay = grade.payment or 0, online = online,
+                jobName = row.jobName, jobLabel = row.jobLabel,
+                level = gradeNumber, gradeName = grade.name, pay = tonumber(row.pay) or 0, online = online,
             }
         end
     end
@@ -129,7 +130,7 @@ QB.callback.register('qbbossmenu:server:getJobData', function(src)
     local definition = jobDefinition(job.name)
     local grades, employees = {}, employeeRows(job.name)
     for level, grade in ipairs(definition.grades) do grades[#grades + 1] = { name = grade.name, grade = level, pay = grade.payment or 0 } end
-    return { jobGrades = grades, employees = employees or {}, applicants = row.applicants, questions = row.questions, bank = exports.qbbanking:GetAccountBalance(job.name), logs = row.logs, jobName = job.name }
+    return { jobGrades = grades, employees = employees or {}, applicants = row.applicants, questions = row.questions, bank = exports.qbbanking:GetAccountBalance(job.name), logs = row.logs, jobName = job.name, jobLabel = definition.label or job.name }
 end)
 
 QB.callback.register('qbbossmenu:server:getApplication', function(_, jobName)
@@ -210,7 +211,7 @@ QB.callback.register('qbbossmenu:server:setRank', function(src, data)
     if grade >= actorGrade then return false, 'You cannot assign your rank or a higher rank.' end
     local roster = employeeRows(row.job) or {}
     for _, employee in ipairs(roster) do
-        if employee.citizenid == data.citizenid and employee.grade >= actorGrade then return false, 'You cannot manage an equal or higher-ranked employee.' end
+        if employee.citizenid == data.citizenid and employee.level >= actorGrade then return false, 'You cannot manage an equal or higher-ranked employee.' end
     end
     local ok, writeErr = updateRoster(data.citizenid, row.job, grade); if not ok then return false, writeErr end
     addLog(row, ('%s was set to %s.'):format(nameFor(data.citizenid), jobDefinition(row.job).grades[grade].name))
@@ -222,7 +223,7 @@ QB.callback.register('qbbossmenu:server:fireEmployee', function(src, data)
     if type(data.employee) ~= 'string' then return false, 'Invalid employee.' end
     local actorGrade = actorJob(src).grade.level
     for _, employee in ipairs(employeeRows(row.job) or {}) do
-        if employee.citizenid == data.employee and employee.grade >= actorGrade then return false, 'You cannot manage an equal or higher-ranked employee.' end
+        if employee.citizenid == data.employee and employee.level >= actorGrade then return false, 'You cannot manage an equal or higher-ranked employee.' end
     end
     local ok, writeErr = updateRoster(data.employee, row.job, nil); if not ok then return false, writeErr end
     addLog(row, ('%s was fired.'):format(nameFor(data.employee)))

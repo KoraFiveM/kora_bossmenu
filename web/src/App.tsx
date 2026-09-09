@@ -141,7 +141,7 @@ function EmployeesPage({ data, busy, rank, fire }: {
   return (
     <section aria-labelledby="employees-title">
       <div className="page-heading"><div><p className="eyebrow">Team</p><h2 id="employees-title">Employees</h2></div><span className="count-badge">{data.employees.length}</span></div>
-      <div className="card table-wrap"><table><thead><tr><th>Employee</th><th>Status</th><th>Rank</th><th>Pay</th><th><span className="sr-only">Actions</span></th></tr></thead><tbody>{data.employees.map((employee) => <tr key={employee.citizenid}><td><strong>{employee.name}</strong><small>{employee.citizenid}</small></td><td><span className={`status ${employee.online ? "online" : "offline"}`}>{employee.online ? "Online" : "Offline"}</span></td><td><select aria-label={`Rank for ${employee.name}`} disabled={busy} value={employee.grade} onChange={(event) => rank(employee, Number(event.target.value))}>{data.jobGrades.map((grade) => <option key={grade.grade} value={grade.grade}>{grade.name}</option>)}</select></td><td>{money.format(employee.pay)}</td><td><button data-size="sm" data-variant="destructive" disabled={busy} onClick={() => fire(employee)}><UserRoundX />Fire</button></td></tr>)}</tbody></table>{data.employees.length === 0 && <p className="empty">There are no employees in this job.</p>}</div>
+      <div className="card table-wrap"><table><thead><tr><th>Employee</th><th>Status</th><th>Rank</th><th>Pay</th><th><span className="sr-only">Actions</span></th></tr></thead><tbody>{data.employees.map((employee) => <tr key={employee.citizenid}><td><strong>{employee.name}</strong><small>{employee.citizenid}</small></td><td><span className={`status ${employee.online ? "online" : "offline"}`}>{employee.online ? "Online" : "Offline"}</span></td><td><select aria-label={`Rank for ${employee.name}`} disabled={busy} value={employee.level} onChange={(event) => rank(employee, Number(event.target.value))}>{data.jobGrades.map((grade) => <option key={grade.grade} value={grade.grade}>{grade.name}</option>)}</select></td><td>{money.format(employee.pay)}</td><td><button data-size="sm" data-variant="destructive" disabled={busy} onClick={() => fire(employee)}><UserRoundX />Fire</button></td></tr>)}</tbody></table>{data.employees.length === 0 && <p className="empty">There are no employees in this job.</p>}</div>
     </section>
   )
 }
@@ -225,7 +225,7 @@ export function App() {
   const accept = (applicant: Applicant) => void mutate("acceptApplicant", { ...payload, citizenid: applicant.citizenid }, () => setData((current) => {
     if (!current) return current
     const grade = current.jobGrades.find((entry) => entry.grade === 1) ?? current.jobGrades[0]
-    const hired: Employee = { citizenid: applicant.citizenid, name: applicant.name, grade: grade?.grade ?? 1, gradeName: grade?.name ?? "Employee", pay: grade?.pay ?? 0, online: false }
+    const hired: Employee = { citizenid: applicant.citizenid, name: applicant.name, jobName: current.jobName, jobLabel: current.jobLabel, level: grade?.grade ?? 1, gradeName: grade?.name ?? "Employee", pay: grade?.pay ?? 0, online: false }
     return { ...current, applicants: current.applicants.filter((entry) => entry.citizenid !== applicant.citizenid), employees: [...current.employees, hired] }
   }))
   const deny = (applicant: Applicant) => setConfirmation({ title: "Deny application?", body: `${applicant.name}'s application will be removed.`, run: () => mutate("denyApplicant", { ...payload, citizenid: applicant.citizenid }, () => setData((current) => current && ({ ...current, applicants: current.applicants.filter((entry) => entry.citizenid !== applicant.citizenid) }))) })
@@ -235,7 +235,7 @@ export function App() {
   const setRank = (employee: Employee, gradeNumber: number) => void mutate("setRank", { ...payload, citizenid: employee.citizenid, grade: gradeNumber }, () => setData((current) => {
     if (!current) return current
     const grade = current.jobGrades.find((entry) => entry.grade === gradeNumber)
-    return { ...current, employees: current.employees.map((entry) => entry.citizenid === employee.citizenid ? { ...entry, grade: gradeNumber, gradeName: grade?.name ?? entry.gradeName, pay: grade?.pay ?? entry.pay } : entry) }
+    return { ...current, employees: current.employees.map((entry) => entry.citizenid === employee.citizenid ? { ...entry, level: gradeNumber, gradeName: grade?.name ?? entry.gradeName, pay: grade?.pay ?? entry.pay } : entry) }
   }))
   const fire = (employee: Employee) => setConfirmation({ title: "Fire employee?", body: `${employee.name} will be removed from ${data.jobName}.`, run: () => mutate("fireEmployee", { ...payload, employee: employee.citizenid }, () => setData((current) => current && ({ ...current, employees: current.employees.filter((entry) => entry.citizenid !== employee.citizenid) }))) })
   const pay = (employee: Employee, amount: number) => void mutate("giveBonus", { ...payload, citizenid: employee.citizenid, amount }, () => setData((current) => current && ({ ...current, bank: current.bank - amount })))
@@ -244,7 +244,7 @@ export function App() {
   return (
     <div className="boss-shell">
       <aside className="sidebar">
-        <div className="brand"><BriefcaseBusiness /><span><strong>Management</strong><small>{data.jobName}</small></span></div>
+        <div className="brand"><BriefcaseBusiness /><span><strong>Management</strong><small>{data.jobLabel}</small></span></div>
         <nav aria-label="Boss menu">{pages.map(({ id, label, icon: Icon }) => <button key={id} className={page === id ? "active" : ""} aria-current={page === id ? "page" : undefined} onClick={() => setPage(id)}><Icon />{label}{id === "applications" && data.applicants.length > 0 && <span>{data.applicants.length}</span>}</button>)}</nav>
         <div className="sidebar-footer"><button onClick={stash} disabled={busy}><Archive />Open Stash</button><button onClick={() => void close()}><LogOut />Close <kbd>Esc</kbd></button></div>
       </aside>

@@ -19,7 +19,9 @@ export interface Applicant {
 export interface Employee {
   citizenid: string
   name: string
-  grade: number
+  jobLabel: string
+  jobName: string
+  level: number
   gradeName: string
   pay: number
   online: boolean
@@ -44,4 +46,5 @@ export interface BossData {
   bank: number
   logs: BossLog[]
   jobName: string
+  jobLabel: string
 }

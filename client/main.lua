@@ -76,12 +76,12 @@ local function appDefinition()
     local availableBalance = tonumber(data.bank) or 0
     for _, employee in ipairs(data.employees or {}) do employees[#employees + 1] = {
         id = employee.citizenid, label = employee.name or employee.citizenid,
-        description = employee.gradeName, icon = 'contact', badge = employee.online and 'Online' or 'Offline',
+        description = ('%s · %s'):format(employee.jobLabel, employee.gradeName), icon = 'contact', badge = employee.online and 'Online' or 'Offline',
         tone = employee.online and 'success' or 'neutral',
-        metadata = { { label = 'Grade', value = employee.grade }, { label = 'Pay', value = money(employee.pay) } },
+        metadata = { { label = 'Grade', value = employee.level }, { label = 'Pay', value = money(employee.pay) } },
         actions = {
             { id = 'boss:rank', label = 'Set rank', icon = 'chevrons-up', fields = {
-                { id = 'grade', label = 'Rank', type = 'select', options = gradeOptions, default = tostring(employee.grade), required = true },
+                { id = 'grade', label = 'Rank', type = 'select', options = gradeOptions, default = tostring(employee.level), required = true },
             } },
             { id = 'boss:bonus', label = 'Give bonus', icon = 'dollar-sign', disabled = availableBalance < 1, fields = {
                 { id = 'amount', label = 'Bonus amount', type = 'number', min = 1,
@@ -115,7 +115,7 @@ local function appDefinition()
     end
 
     return {
-        id = APP_ID, title = 'Management', description = data.jobName or 'Boss menu', icon = 'briefcase-business',
+        id = APP_ID, title = 'Management', description = data.jobLabel or data.jobName or 'Boss menu', icon = 'briefcase-business',
         width = 1180, height = 780,
         navigation = {
             { id = 'overview', label = 'Overview', icon = 'layout-dashboard', content = {

@@ -18,9 +18,9 @@ end
 
 local function copyMenu(overrides)
     local data = {
-        jobName = 'police', bank = 2500,
+        jobName = 'police', jobLabel = 'Police', bank = 2500,
         employees = {
-            { citizenid = 'EMP-1', name = 'Alex Officer', grade = 1, gradeName = 'Officer', pay = 100, online = true },
+            { citizenid = 'EMP-1', name = 'Alex Officer', jobName = 'police', jobLabel = 'Police', level = 1, gradeName = 'Officer', pay = 100, online = true },
         },
         applicants = {
             { citizenid = 'APP-1', name = 'Sam Applicant', questions = {
@@ -160,6 +160,9 @@ local employees = view(definition, 'employees').content.blocks[1]
 equal(employees.layout, 'cards', 'employees use card layout')
 equal(employees.searchable, true, 'employees are searchable')
 local employee = item(employees, 'EMP-1')
+equal(employee.description, 'Police · Officer', 'employees display the server-provided job label')
+equal(employee.metadata[1].value, 1, 'employees display the flattened job level')
+equal(employee.metadata[2].value, '$100', 'employees display the flattened job pay')
 check(action(employee.actions, 'boss:rank').fields, 'rank uses an AppShell action form')
 check(action(employee.actions, 'boss:bonus').fields, 'bonus uses an AppShell action form')
 check(action(employee.actions, 'boss:fire').confirm, 'firing uses AppShell confirmation')

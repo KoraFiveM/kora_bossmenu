@@ -5,13 +5,14 @@ import type { BossData } from "./types"
 
 const data: BossData = {
   jobName: "police",
+  jobLabel: "Law Enforcement",
   bank: 5000,
   jobGrades: [
     { grade: 1, name: "Officer", pay: 500 },
     { grade: 2, name: "Sergeant", pay: 750 },
   ],
   employees: [
-    { citizenid: "EMP001", name: "Alex Stone", grade: 1, gradeName: "Officer", pay: 500, online: true },
+    { citizenid: "EMP001", name: "Alex Stone", jobName: "police", jobLabel: "Law Enforcement", level: 1, gradeName: "Officer", pay: 500, online: true },
   ],
   applicants: [
     { citizenid: "APP001", name: "Jordan Lane", questions: [{ question: "Why join?", answer: "To help the city." }] },
