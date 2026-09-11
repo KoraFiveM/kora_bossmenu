@@ -6,16 +6,6 @@ local function notify(message, type_)
     QB.notify.send({ title = 'Boss Menu', message = message, type = type_ or 'info' })
 end
 
-local function callback(name, ...)
-    local args = table.pack(...)
-    local results = table.pack(pcall(function()
-        return QB.callback.trigger(name, table.unpack(args, 1, args.n))
-    end))
-    if not results[1] then return false, tostring(results[2]) end
-    if results.n < 2 then return false, 'The server did not answer.' end
-    return table.unpack(results, 2, results.n)
-end
-
 local function applicationFields(questions)
     local fields = {}
     for index, question in ipairs(questions) do
@@ -31,11 +21,11 @@ local function applicationFields(questions)
 end
 
 local function openApplication(jobName)
-    local job, err = callback('qbbossmenu:server:getApplication', jobName)
+    local job, err = QB.callback.trigger('qbbossmenu:server:getApplication', jobName)
     if not job then return notify(err or 'That job is not accepting applications.', 'error') end
     local result = QB.nui.openInputDialog(applicationFields(job.questions), ('Apply: %s'):format(job.label), 'Complete every question to submit your application.')
     if not result or result.cancelled then return end
-    local ok, submitErr = callback('qbbossmenu:server:submitApplication', jobName, result.values)
+    local ok, submitErr = QB.callback.trigger('qbbossmenu:server:submitApplication', jobName, result.values)
     notify(ok and 'Your application was submitted.' or (submitErr or 'Could not submit application.'), ok and 'success' or 'error')
 end
 
@@ -158,7 +148,7 @@ local function appDefinition()
             local payload = { jobName = latest.jobName }
             local endpoint
             if actionId == 'boss:stash' then
-                local ok, err = callback('qbbossmenu:server:openStash')
+                local ok, err = QB.callback.trigger('qbbossmenu:server:openStash')
                 if not ok then return { notice = { tone = 'destructive', message = err or 'Could not open the stash.' } } end
                 return { notice = { tone = 'success', message = 'Boss stash opened.' } }
             elseif actionId == 'boss:accept' then endpoint = 'acceptApplicant'; payload.citizenid = itemId
@@ -180,9 +170,9 @@ local function appDefinition()
                 end
             else error('That management action is no longer available.') end
 
-            local ok, err = callback('qbbossmenu:server:' .. endpoint, payload)
+            local ok, err = QB.callback.trigger('qbbossmenu:server:' .. endpoint, payload)
             if not ok then return { notice = { tone = 'destructive', message = err or 'The management action was declined.' } } end
-            local refreshed, refreshErr = callback('qbbossmenu:server:getJobData')
+            local refreshed, refreshErr = QB.callback.trigger('qbbossmenu:server:getJobData')
             if not refreshed then return { notice = { tone = 'warning', message = refreshErr or 'Saved, but the view could not refresh.' } } end
             currentData = refreshed
             local updated = appDefinition()
@@ -198,7 +188,7 @@ local function openBossMenu()
 
     CreateThread(function()
         local ok, err = pcall(function()
-            local data, loadError = callback('qbbossmenu:server:getJobData')
+            local data, loadError = QB.callback.trigger('qbbossmenu:server:getJobData')
             if not data then
                 notify(loadError or 'You cannot open this boss menu.', 'error')
                 return

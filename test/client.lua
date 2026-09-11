@@ -213,7 +213,7 @@ equal(directCloses, 0, 'stash relies on closeBeforeAction instead of closing dir
 applicationData, applicationError = nil, 'Applications are closed.'
 commands[Config.applicationCommand](nil, { 'police' })
 equal(notifications[#notifications].message, 'Applications are closed.',
-    'callback wrappers preserve an error returned after a nil first value')
+    'application errors returned after a nil result reach the notification')
 
 applicationData, applicationError = defaultApplicationData, nil
 dialogResult = { values = { ['1'] = 'An answer', ['2'] = 'A longer answer' } }
