@@ -1,12 +1,6 @@
 local RESOURCE = GetCurrentResourceName()
 local ready = false
 
-local function checksum(value)
-    local hash = 2166136261
-    for i = 1, #value do hash = ((hash ~ value:byte(i)) * 16777619) & 0xFFFFFFFF end
-    return ('%08x'):format(hash)
-end
-
 local function decode(value, fallback)
     if type(value) ~= 'string' then return fallback end
     local ok, decoded = pcall(json.decode, value)
@@ -114,8 +108,9 @@ end
 CreateThread(function()
     local available = QB.sql.ready(60000)
     if not available then return print('^1[qbbossmenu]^7 qbsql was not ready; resource disabled.') end
-    local sql = assert(LoadResourceFile(RESOURCE, 'sql/001_bossmenu.sql'), 'missing qbbossmenu migration')
-    local _, err = QB.sql.migrate(RESOURCE, { { version = 1, name = 'bossmenu', sql = sql, checksum = checksum(sql) } })
+    local _, err = QB.sql.migrateFiles(RESOURCE, {
+        { version = 1, name = 'bossmenu', file = 'sql/001_bossmenu.sql' },
+    })
     if err then return print(('^1[qbbossmenu]^7 migration failed: %s'):format(err)) end
     ready = true
 end)
