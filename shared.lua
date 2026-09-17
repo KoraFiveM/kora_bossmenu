@@ -11,3 +11,7 @@ Config.defaultQuestions = {
     { question = 'What relevant experience do you have?', type = 'long' },
     { question = 'How do you work in a team environment?', type = 'long' },
 }
+
+-- Registers this resource-owned configuration with qblib while preserving the
+-- public Config table used by the client and server scripts.
+if QB and QB.config and QB.config.adopt then Config = QB.config.adopt(Config) end
