@@ -41,12 +41,11 @@ local function ensureJob(job)
             job, json.encode(Config.defaultQuestions), '[]', '[]',
         })
         if not inserted then return nil, insertErr or 'Could not create job data.' end
-        row = { job = job, questions = json.encode(Config.defaultQuestions), applicants = '[]', logs = '[]', balance = 0 }
+        row = { job = job, questions = json.encode(Config.defaultQuestions), applicants = '[]', logs = '[]' }
     end
     row.questions = decode(row.questions, {})
     row.applicants = decode(row.applicants, {})
     row.logs = decode(row.logs, {})
-    row.balance = tonumber(row.balance) or 0
     return row
 end
 
@@ -109,9 +108,18 @@ CreateThread(function()
     local available = QB.sql.ready(60000)
     if not available then return print('^1[qbbossmenu]^7 qbsql was not ready; resource disabled.') end
     local _, err = QB.sql.migrateFiles(RESOURCE, {
-        { version = 1, name = 'bossmenu', file = 'sql/001_bossmenu.sql' },
+        {
+            version = 1,
+            name = 'bossmenu',
+            file = 'sql/001_bossmenu.sql',
+            -- The two existing servers may have applied v1 before its obsolete
+            -- balance column was removed. Accept that exact reviewed checksum.
+            acceptedChecksums = { 'a3aa4c49' },
+        },
     })
     if err then return print(('^1[qbbossmenu]^7 migration failed: %s'):format(err)) end
+    local _, schemaErr = QB.sql.execute('ALTER TABLE `qbbossmenu_jobs` DROP COLUMN IF EXISTS `balance`')
+    if schemaErr then return print(('^1[qbbossmenu]^7 balance-column removal failed: %s'):format(schemaErr)) end
     ready = true
 end)
 
@@ -125,7 +133,7 @@ QB.callback.register('qbbossmenu:server:getJobData', function(src)
     local definition = jobDefinition(job.name)
     local grades, employees = {}, employeeRows(job.name)
     for level, grade in ipairs(definition.grades) do grades[#grades + 1] = { name = grade.name, grade = level, pay = grade.payment or 0 } end
-    return { jobGrades = grades, employees = employees or {}, applicants = row.applicants, questions = row.questions, bank = exports.qbbanking:GetAccountBalance(job.name), logs = row.logs, jobName = job.name, jobLabel = definition.label or job.name }
+    return { jobGrades = grades, employees = employees or {}, applicants = row.applicants, questions = row.questions, logs = row.logs, jobName = job.name, jobLabel = definition.label or job.name }
 end)
 
 QB.callback.register('qbbossmenu:server:getApplication', function(_, jobName)

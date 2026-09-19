@@ -10,8 +10,9 @@ or legacy QBCore dependency.
   are available to attach the flows to another resource's interaction.
 
 The resource migrates `qbbossmenu_jobs` on start for applications and activity
-only. Job society balances are owned by `qbbanking`; the boss menu reads and
-debits that account directly. The legacy `addBusinessMoney`,
+only. Any obsolete boss-menu balance column is removed during startup. Job
+society balances are owned by `qbbanking`; bonuses debit that account directly.
+The legacy `addBusinessMoney`,
 `removeBusinessMoney`, and `getBusinessBalance` exports remain as delegates to
 qbbanking for existing business resources.
 

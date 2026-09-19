@@ -63,7 +63,6 @@ local function appDefinition()
     end
 
     local employees = {}
-    local availableBalance = tonumber(data.bank) or 0
     for _, employee in ipairs(data.employees or {}) do employees[#employees + 1] = {
         id = employee.citizenid, label = employee.name or employee.citizenid,
         description = ('%s · %s'):format(employee.jobLabel, employee.gradeName), icon = 'contact', badge = employee.online and 'Online' or 'Offline',
@@ -73,11 +72,9 @@ local function appDefinition()
             { id = 'boss:rank', label = 'Set rank', icon = 'chevrons-up', fields = {
                 { id = 'grade', label = 'Rank', type = 'select', options = gradeOptions, default = tostring(employee.level), required = true },
             } },
-            { id = 'boss:bonus', label = 'Give bonus', icon = 'dollar-sign', disabled = availableBalance < 1, fields = {
+            { id = 'boss:bonus', label = 'Give bonus', icon = 'dollar-sign', fields = {
                 { id = 'amount', label = 'Bonus amount', type = 'number', min = 1,
-                    max = availableBalance >= 1 and availableBalance or nil,
-                    required = true, presets = { { value = 100 }, { value = 250 }, { value = 500 }, { value = 1000 } },
-                    description = money(data.bank) .. ' available in the business account' },
+                    required = true, presets = { { value = 100 }, { value = 250 }, { value = 500 }, { value = 1000 } } },
             } },
             { id = 'boss:fire', label = 'Fire', icon = 'user-x', variant = 'destructive', confirm = 'Remove this employee from the job roster?' },
         },
@@ -109,10 +106,9 @@ local function appDefinition()
         width = 1180, height = 780,
         navigation = {
             { id = 'overview', label = 'Overview', icon = 'layout-dashboard', content = {
-                title = 'Business overview', description = 'Live staffing and business-account summary.',
+                title = 'Business overview', description = 'Live staffing and recruitment summary.',
                 actions = { { id = 'boss:stash', label = 'Open boss stash', icon = 'package-open', variant = 'primary', closeBeforeAction = true } },
                 blocks = { { type = 'stats', items = {
-                    { label = 'Business balance', value = money(data.bank), icon = 'dollar-sign', tone = 'primary' },
                     { label = 'Employees', value = #(data.employees or {}), icon = 'users' },
                     { label = 'Applicants', value = #(data.applicants or {}), icon = 'user-plus', tone = #applicants > 0 and 'warning' or 'neutral' },
                     { label = 'Application questions', value = #(data.questions or {}), icon = 'help-circle' },

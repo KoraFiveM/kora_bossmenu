@@ -6,7 +6,6 @@ import type { BossData } from "./types"
 const data: BossData = {
   jobName: "police",
   jobLabel: "Law Enforcement",
-  bank: 5000,
   jobGrades: [
     { grade: 1, name: "Officer", pay: 500 },
     { grade: 2, name: "Sergeant", pay: 750 },
@@ -49,7 +48,7 @@ afterEach(() => {
 test("renders Home, Applications, Application Form, Employees, and Bonus pages", async () => {
   const user = await openApp()
   expect(screen.getByRole("heading", { name: "Home" })).toBeInTheDocument()
-  expect(screen.getByText("$5,000")).toBeInTheDocument()
+  expect(screen.queryByText("Business balance")).not.toBeInTheDocument()
   await user.click(screen.getByRole("button", { name: /Applications/ }))
   expect(screen.getByRole("heading", { name: "Applications" })).toBeInTheDocument()
   await user.click(screen.getByRole("button", { name: "Application Form" }))
@@ -118,21 +117,18 @@ test("fires an employee through confirmation", async () => {
   expect(screen.queryByText("Alex Stone")).not.toBeInTheDocument()
 })
 
-test("validates and successfully pays a bonus", async () => {
+test("validates and successfully pays a bonus through the server", async () => {
   const user = await openApp()
   await user.click(screen.getByRole("button", { name: "Bonus" }))
   await user.clear(screen.getByLabelText("Bonus amount"))
-  await user.type(screen.getByLabelText("Bonus amount"), "6000")
   await user.click(screen.getByRole("button", { name: "Pay Bonus" }))
-  expect(screen.getByRole("alert")).toHaveTextContent("cannot exceed")
+  expect(screen.getByRole("alert")).toHaveTextContent("positive amount")
   expect(called("giveBonus")).toBe(false)
 
   await user.clear(screen.getByLabelText("Bonus amount"))
   await user.type(screen.getByLabelText("Bonus amount"), "250")
   await user.click(screen.getByRole("button", { name: "Pay Bonus" }))
   await waitFor(() => expect(called("giveBonus")).toBe(true))
-  await user.click(screen.getByRole("button", { name: "Home" }))
-  expect(screen.getByText("$4,750")).toBeInTheDocument()
 })
 
 test("retains local state and reports an error when a mutation fails", async () => {

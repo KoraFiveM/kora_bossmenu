@@ -39,7 +39,6 @@ function HomePage({ data }: { data: BossData }) {
         <div><p className="eyebrow">Overview</p><h2 id="home-title">Home</h2></div>
       </div>
       <div className="metric-grid">
-        <article><BadgeDollarSign /><span>Business balance</span><strong>{money.format(data.bank)}</strong></article>
         <article><Users /><span>Employees</span><strong>{data.employees.length}</strong></article>
         <article><ClipboardList /><span>Applications</span><strong>{data.applicants.length}</strong></article>
       </div>
@@ -156,7 +155,6 @@ function BonusPage({ data, busy, pay }: { data: BossData; busy: boolean; pay: (e
     const employee = data.employees.find((entry) => entry.citizenid === citizenid)
     const parsed = Math.floor(Number(amount))
     if (!employee || !Number.isFinite(parsed) || parsed <= 0) return setValidation("Choose an employee and enter a positive amount.")
-    if (parsed > data.bank) return setValidation("The bonus cannot exceed the business balance.")
     setValidation("")
     pay(employee, parsed)
   }
@@ -164,7 +162,7 @@ function BonusPage({ data, busy, pay }: { data: BossData; busy: boolean; pay: (e
   return (
     <section aria-labelledby="bonus-title">
       <div className="page-heading"><div><p className="eyebrow">Compensation</p><h2 id="bonus-title">Bonus</h2></div></div>
-      <div className="bonus-layout"><form className="card bonus-form" onSubmit={submit}><label><span>Employee</span><select aria-label="Bonus employee" value={citizenid} onChange={(event) => setCitizenid(event.target.value)}><option value="">Select employee</option>{data.employees.map((employee) => <option key={employee.citizenid} value={employee.citizenid}>{employee.name}{employee.online ? "" : " (offline)"}</option>)}</select></label><label><span>Amount</span><input aria-label="Bonus amount" inputMode="numeric" min="1" type="number" value={amount} onChange={(event) => setAmount(event.target.value)} /></label>{validation && <p className="field-error" role="alert">{validation}</p>}<button data-variant="primary" disabled={busy || data.employees.length === 0}><BadgeDollarSign />Pay Bonus</button></form><aside className="card balance-card"><span>Available balance</span><strong>{money.format(data.bank)}</strong><small>Bonuses are paid to online employees.</small></aside></div>
+      <div className="bonus-layout"><form className="card bonus-form" onSubmit={submit}><label><span>Employee</span><select aria-label="Bonus employee" value={citizenid} onChange={(event) => setCitizenid(event.target.value)}><option value="">Select employee</option>{data.employees.map((employee) => <option key={employee.citizenid} value={employee.citizenid}>{employee.name}{employee.online ? "" : " (offline)"}</option>)}</select></label><label><span>Amount</span><input aria-label="Bonus amount" inputMode="numeric" min="1" type="number" value={amount} onChange={(event) => setAmount(event.target.value)} /></label>{validation && <p className="field-error" role="alert">{validation}</p>}<button data-variant="primary" disabled={busy || data.employees.length === 0}><BadgeDollarSign />Pay Bonus</button></form></div>
     </section>
   )
 }
@@ -238,7 +236,7 @@ export function App() {
     return { ...current, employees: current.employees.map((entry) => entry.citizenid === employee.citizenid ? { ...entry, level: gradeNumber, gradeName: grade?.name ?? entry.gradeName, pay: grade?.pay ?? entry.pay } : entry) }
   }))
   const fire = (employee: Employee) => setConfirmation({ title: "Fire employee?", body: `${employee.name} will be removed from ${data.jobName}.`, run: () => mutate("fireEmployee", { ...payload, employee: employee.citizenid }, () => setData((current) => current && ({ ...current, employees: current.employees.filter((entry) => entry.citizenid !== employee.citizenid) }))) })
-  const pay = (employee: Employee, amount: number) => void mutate("giveBonus", { ...payload, citizenid: employee.citizenid, amount }, () => setData((current) => current && ({ ...current, bank: current.bank - amount })))
+  const pay = (employee: Employee, amount: number) => void mutate("giveBonus", { ...payload, citizenid: employee.citizenid, amount }, () => {})
   const stash = () => void mutate("openStash", {}, () => setData(null))
 
   return (

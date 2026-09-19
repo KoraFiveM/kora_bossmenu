@@ -18,7 +18,7 @@ end
 
 local function copyMenu(overrides)
     local data = {
-        jobName = 'police', jobLabel = 'Police', bank = 2500,
+        jobName = 'police', jobLabel = 'Police',
         employees = {
             { citizenid = 'EMP-1', name = 'Alex Officer', jobName = 'police', jobLabel = 'Police', level = 1, gradeName = 'Officer', pay = 100, online = true },
         },
@@ -147,6 +147,9 @@ local overview = view(definition, 'overview')
 local stash = action(overview.content.actions, 'boss:stash')
 check(stash and stash.closeBeforeAction == true, 'stash releases AppShell before inventory opens')
 equal(directCloses, 0, 'consumer does not manually close the AppShell')
+for _, stat in ipairs(overview.content.blocks[1].items) do
+    check(stat.label ~= 'Business balance', 'overview does not display a business balance')
+end
 
 local applicants = view(definition, 'applicants').content.blocks[1]
 equal(applicants.layout, 'cards', 'applicants use card layout')
@@ -164,7 +167,11 @@ equal(employee.description, 'Police · Officer', 'employees display the server-p
 equal(employee.metadata[1].value, 1, 'employees display the flattened job level')
 equal(employee.metadata[2].value, '$100', 'employees display the flattened job pay')
 check(action(employee.actions, 'boss:rank').fields, 'rank uses an AppShell action form')
-check(action(employee.actions, 'boss:bonus').fields, 'bonus uses an AppShell action form')
+local bonus = action(employee.actions, 'boss:bonus')
+check(bonus.fields, 'bonus uses an AppShell action form')
+equal(bonus.disabled, nil, 'bonus availability is decided by qbbanking on the server')
+equal(bonus.fields[1].max, nil, 'bonus form does not cache a business balance as its maximum')
+equal(bonus.fields[1].description, nil, 'bonus form does not display a business balance')
 check(action(employee.actions, 'boss:fire').confirm, 'firing uses AppShell confirmation')
 
 local questions = view(definition, 'questions')
@@ -230,13 +237,6 @@ equal(submit.args[2]['1'], 'An answer', 'application submission forwards dialog 
 equal(rawCallbacks, 0, 'migration registers no private NUI callbacks')
 equal(directMessages, 0, 'migration sends no private browser messages')
 equal(focusChanges, 0, 'migration delegates focus ownership to qblib')
-
-menuData = copyMenu({ bank = 0 })
-commands[Config.command]()
-local zeroBalanceEmployees = view(appDefinitions['qbbossmenu:management'], 'employees').content.blocks[1]
-local zeroBalanceBonus = action(item(zeroBalanceEmployees, 'EMP-1').actions, 'boss:bonus')
-check(zeroBalanceBonus.disabled, 'bonuses are disabled when the business balance is zero')
-equal(zeroBalanceBonus.fields[1].max, nil, 'zero balance never creates invalid bonus min/max bounds')
 
 local manifestFile = assert(io.open(root .. 'fxmanifest.lua', 'r'))
 local manifest = manifestFile:read('*a')

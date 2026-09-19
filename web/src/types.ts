@@ -43,7 +43,6 @@ export interface BossData {
   employees: Employee[]
   applicants: Applicant[]
   questions: Question[]
-  bank: number
   logs: BossLog[]
   jobName: string
   jobLabel: string

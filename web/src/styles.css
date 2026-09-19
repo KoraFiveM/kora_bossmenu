@@ -146,14 +146,9 @@ h2, h3, p { margin-top: 0; }
 .table-wrap select { min-width: 130px; }
 .table-wrap td:last-child { width: 1%; text-align: right; }
 
-.bonus-layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 1rem; }
+.bonus-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
 .bonus-form { display: grid; gap: 1rem; padding: 1.1rem; }
 .bonus-form > button { justify-self: start; }
-.balance-card { display: flex; min-height: 180px; flex-direction: column; justify-content: center; padding: 1.25rem; }
-.balance-card span,
-.balance-card small { color: hsl(var(--muted-foreground)); }
-.balance-card strong { margin: 0.4rem 0; color: hsl(var(--primary)); font-size: 1.8rem; }
-.balance-card small { line-height: 1.45; }
 .field-error { margin: 0; color: hsl(var(--destructive)); font-size: 0.75rem; }
 
 .error-banner { position: absolute; z-index: 5; top: 64px; right: 1rem; display: flex; max-width: 440px; align-items: center; gap: 0.5rem; border: 1px solid hsl(var(--destructive-border)); border-radius: var(--radius); background: hsl(var(--destructive-soft)); padding: 0.55rem 0.7rem; color: hsl(var(--destructive)); box-shadow: var(--shadow-floating); font-size: 0.75rem; }
