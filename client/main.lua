@@ -219,5 +219,13 @@ RegisterCommand(Config.applicationCommand, function(_, args)
     openApplication(args[1], args[2] == 'gang' and 'gang' or nil)
 end, false)
 
+RegisterNetEvent('qb-bossmenu:client:OpenMenu', function()
+    if QB.callback.trigger('qbbossmenu:server:isJobBoss') then openBossMenu() end
+end)
+
+RegisterNetEvent('qb-gangmenu:client:OpenMenu', function()
+    if QB.callback.trigger('qbbossmenu:server:isGangBoss') then openBossMenu('gang') end
+end)
+
 exports('openBossMenu', openBossMenu)
 exports('openApplication', openApplication)

@@ -158,6 +158,19 @@ CreateThread(function()
     ready = true
 end)
 
+local function actorIsBoss(src, roleType)
+    local role = actorRole(src, roleType)
+    return ready and role and isBoss(src, roleType, role.name) or false
+end
+
+QB.callback.register('qbbossmenu:server:isJobBoss', function(src)
+    return actorIsBoss(src, 'job')
+end)
+
+QB.callback.register('qbbossmenu:server:isGangBoss', function(src)
+    return actorIsBoss(src, 'gang')
+end)
+
 QB.callback.register('qbbossmenu:server:getJobData', function(src, requestedRoleType)
     local roleType = requestedRoleType == 'gang' and 'gang' or 'job'
     local role = actorRole(src, roleType)

@@ -1,5 +1,5 @@
 local root = debug.getinfo(1, 'S').source:sub(2):match('(.*/)') .. '../'
-local commands, registeredExports, serverCalls = {}, {}, {}
+local commands, events, registeredExports, serverCalls = {}, {}, {}, {}
 local appDefinitions, openedApps, inputDialogs, notifications = {}, {}, {}, {}
 local rawCallbacks, directMessages, focusChanges, directCloses = 0, 0, 0, 0
 local assertions = 0
@@ -46,9 +46,11 @@ local applicationData = { label = 'Police', questions = menuData.questions }
 local defaultApplicationData = applicationData
 local applicationError
 local dialogResult = { cancelled = true }
+local legacyAllowed = true
 
 _G.GetCurrentResourceName = function() return 'qbbossmenu' end
 _G.RegisterCommand = function(name, fn) commands[name] = fn end
+_G.RegisterNetEvent = function(name, fn) events[name] = fn end
 _G.RegisterNUICallback = function() rawCallbacks = rawCallbacks + 1 end
 _G.SetNuiFocus = function() focusChanges = focusChanges + 1 end
 _G.SendNUIMessage = function() directMessages = directMessages + 1 end
@@ -58,6 +60,7 @@ _G.exports = setmetatable({}, { __call = function(_, name, fn) registeredExports
 local function responseFor(name)
     if name == 'qbbossmenu:server:getJobData' then return table.pack(menuData) end
     if name == 'qbbossmenu:server:getApplication' then return table.pack(applicationData, applicationError) end
+    if name == 'qbbossmenu:server:isJobBoss' or name == 'qbbossmenu:server:isGangBoss' then return table.pack(legacyAllowed) end
     return table.pack(true)
 end
 
@@ -130,12 +133,29 @@ check(commands[Config.command], 'boss-menu command is registered')
 check(commands[Config.applicationCommand], 'application command is registered')
 check(registeredExports.openBossMenu, 'boss-menu export is registered')
 check(registeredExports.openApplication, 'application export is registered')
+check(events['qb-bossmenu:client:OpenMenu'], 'legacy job-boss event is registered')
+check(events['qb-gangmenu:client:OpenMenu'], 'legacy gang-boss event is registered')
 
 commands[Config.command]()
 local definition = appDefinitions['qbbossmenu:management']
 check(definition, 'boss menu registers an AppShell definition')
 equal(openedApps[#openedApps], 'qbbossmenu:management', 'boss menu opens the registered AppShell')
 equal(definition.title, 'Management', 'AppShell title is retained')
+local openedBeforeLegacy = #openedApps
+events['qb-bossmenu:client:OpenMenu']()
+equal(#openedApps, openedBeforeLegacy + 1, 'authorized legacy job event uses the normal menu flow')
+check(lastServerCall('qbbossmenu:server:isJobBoss'), 'legacy job event uses server authorization')
+menuData = copyMenu({ roleType = 'gang', jobName = 'ballas', jobLabel = 'Ballas' })
+events['qb-gangmenu:client:OpenMenu']()
+equal(#openedApps, openedBeforeLegacy + 2, 'authorized legacy gang event uses the normal menu flow')
+equal(lastServerCall('qbbossmenu:server:getJobData').args[1], 'gang', 'legacy gang event opens the gang flow')
+legacyAllowed = false
+events['qb-bossmenu:client:OpenMenu']()
+equal(#openedApps, openedBeforeLegacy + 2, 'denied legacy events do not open the menu')
+legacyAllowed = true
+menuData = copyMenu()
+commands[Config.command]()
+definition = appDefinitions['qbbossmenu:management']
 equal(#definition.navigation, 5, 'all management workspaces are present')
 check(view(definition, 'overview'), 'overview workspace is present')
 check(view(definition, 'applicants'), 'applicant workspace is present')
