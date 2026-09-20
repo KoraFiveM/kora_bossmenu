@@ -20,12 +20,12 @@ local function applicationFields(questions)
     return fields
 end
 
-local function openApplication(jobName)
-    local job, err = QB.callback.trigger('qbbossmenu:server:getApplication', jobName)
+local function openApplication(jobName, roleType)
+    local job, err = QB.callback.trigger('qbbossmenu:server:getApplication', jobName, roleType)
     if not job then return notify(err or 'That job is not accepting applications.', 'error') end
     local result = QB.nui.openInputDialog(applicationFields(job.questions), ('Apply: %s'):format(job.label), 'Complete every question to submit your application.')
     if not result or result.cancelled then return end
-    local ok, submitErr = QB.callback.trigger('qbbossmenu:server:submitApplication', jobName, result.values)
+    local ok, submitErr = QB.callback.trigger('qbbossmenu:server:submitApplication', jobName, result.values, roleType)
     notify(ok and 'Your application was submitted.' or (submitErr or 'Could not submit application.'), ok and 'success' or 'error')
 end
 
@@ -42,7 +42,7 @@ local function appDefinition()
     local data = currentData or { employees = {}, applicants = {}, questions = {}, logs = {}, jobGrades = {} }
     local gradeOptions = {}
     for _, grade in ipairs(data.jobGrades or {}) do
-        gradeOptions[#gradeOptions + 1] = { value = tostring(grade.grade), label = ('%s · %s'):format(grade.name, money(grade.pay)) }
+        gradeOptions[#gradeOptions + 1] = { value = tostring(grade.grade), label = data.roleType == 'gang' and grade.name or ('%s · %s'):format(grade.name, money(grade.pay)) }
     end
 
     local applicants = {}
@@ -67,7 +67,8 @@ local function appDefinition()
         id = employee.citizenid, label = employee.name or employee.citizenid,
         description = ('%s · %s'):format(employee.jobLabel, employee.gradeName), icon = 'contact', badge = employee.online and 'Online' or 'Offline',
         tone = employee.online and 'success' or 'neutral',
-        metadata = { { label = 'Grade', value = employee.level }, { label = 'Pay', value = money(employee.pay) } },
+        metadata = data.roleType == 'gang' and { { label = 'Rank', value = employee.level } }
+            or { { label = 'Grade', value = employee.level }, { label = 'Pay', value = money(employee.pay) } },
         actions = {
             { id = 'boss:rank', label = 'Set rank', icon = 'chevrons-up', fields = {
                 { id = 'grade', label = 'Rank', type = 'select', options = gradeOptions, default = tostring(employee.level), required = true },
@@ -76,7 +77,7 @@ local function appDefinition()
                 { id = 'amount', label = 'Bonus amount', type = 'number', min = 1,
                     required = true, presets = { { value = 100 }, { value = 250 }, { value = 500 }, { value = 1000 } } },
             } },
-            { id = 'boss:fire', label = 'Fire', icon = 'user-x', variant = 'destructive', confirm = 'Remove this employee from the job roster?' },
+            { id = 'boss:fire', label = data.roleType == 'gang' and 'Kick' or 'Fire', icon = 'user-x', variant = 'destructive', confirm = data.roleType == 'gang' and 'Remove this member from the gang?' or 'Remove this employee from the job roster?' },
         },
     } end
 
@@ -120,7 +121,7 @@ local function appDefinition()
                     items = applicants, empty = 'There are no pending applications.' } },
             } },
             { id = 'employees', label = 'Employees', icon = 'users', badge = #employees, content = {
-                title = 'Employee roster', description = 'Current business funds are available for bonuses.',
+                title = data.roleType == 'gang' and 'Gang roster' or 'Employee roster', description = 'Current business funds are available for bonuses.',
                 blocks = {
                     { type = 'stats', items = { { label = 'Business balance', value = money(data.accountBalance), icon = 'landmark', tone = 'primary' } } },
                     { type = 'list', id = 'employees', layout = 'cards', searchable = true, pageSize = 8,
@@ -144,10 +145,10 @@ local function appDefinition()
             local values = type(context and context.value) == 'table' and context.value or {}
             local itemId = context and context.itemId
             local latest = currentData or data
-            local payload = { jobName = latest.jobName }
+            local payload = { jobName = latest.jobName, roleType = latest.roleType }
             local endpoint
             if actionId == 'boss:stash' then
-                local ok, err = QB.callback.trigger('qbbossmenu:server:openStash')
+                local ok, err = QB.callback.trigger('qbbossmenu:server:openStash', latest.roleType)
                 if not ok then return { notice = { tone = 'destructive', message = err or 'Could not open the stash.' } } end
                 return { notice = { tone = 'success', message = 'Boss stash opened.' } }
             elseif actionId == 'boss:accept' then endpoint = 'acceptApplicant'; payload.citizenid = itemId
@@ -181,13 +182,13 @@ local function appDefinition()
     }
 end
 
-local function openBossMenu()
+local function openBossMenu(roleType)
     if appActive then return end
     appActive = true
 
     CreateThread(function()
         local ok, err = pcall(function()
-            local data, loadError = QB.callback.trigger('qbbossmenu:server:getJobData')
+            local data, loadError = QB.callback.trigger('qbbossmenu:server:getJobData', roleType)
             if not data then
                 notify(loadError or 'You cannot open this boss menu.', 'error')
                 return
@@ -208,10 +209,14 @@ local function openBossMenu()
     end)
 end
 
-RegisterCommand(Config.command, openBossMenu, false)
+RegisterCommand(Config.command, function(_, args)
+    args = args or {}
+    openBossMenu(args[1] == 'gang' and 'gang' or nil)
+end, false)
 RegisterCommand(Config.applicationCommand, function(_, args)
+    args = args or {}
     if not args[1] then return notify(('Usage: /%s [job]'):format(Config.applicationCommand), 'error') end
-    openApplication(args[1])
+    openApplication(args[1], args[2] == 'gang' and 'gang' or nil)
 end, false)
 
 exports('openBossMenu', openBossMenu)

@@ -40,8 +40,13 @@ check(not client:find('QB.nui.isAppOpen', 1, true),
 
 check(not server:find('row.balance', 1, true), 'boss menu does not maintain a balance on its job row')
 check(client:find('data.accountBalance', 1, true), 'boss menu displays the qbbanking account balance on the employee page')
-check(server:find('accountBalance = exports.qbbanking:GetAccountBalance(job.name)', 1, true),
+check(server:find('accountBalance = exports.qbbanking:GetAccountBalance(role.name)', 1, true),
     'authorized job data reads the current balance from qbbanking')
+check(server:find("JSON_UNQUOTE(JSON_EXTRACT(`gang`, '$.name'))", 1, true),
+    'gang rosters are read from the persisted players table')
+check(server:find('exports.qbcore:setGang', 1, true), 'online gang rank changes use qbcore')
+check(server:find('jobLabel = definition.label or jobName', 1, true),
+    'employee labels come from the job definition, not the minimal roster row')
 check(server:find("exports.qbbanking:AddMoney", 1, true), 'business credits delegate to qbbanking')
 check(server:find("exports.qbbanking:RemoveMoney", 1, true), 'business debits delegate to qbbanking')
 check(server:find("exports.qbbanking:GetAccountBalance", 1, true), 'business balance reads delegate to qbbanking')

@@ -179,6 +179,23 @@ equal(bonus.fields[1].max, nil, 'bonus form does not cache a business balance as
 equal(bonus.fields[1].description, nil, 'bonus form does not display a business balance')
 check(action(employee.actions, 'boss:fire').confirm, 'firing uses AppShell confirmation')
 
+menuData = copyMenu({
+    roleType = 'gang', jobName = 'ballas', jobLabel = 'Ballas',
+    employees = { { citizenid = 'MEM-1', name = 'Alex Member', jobName = 'ballas', jobLabel = 'Ballas', level = 1, gradeName = 'Associate', online = true } },
+})
+commands[Config.command](nil, { 'gang' })
+local gangDefinition = appDefinitions['qbbossmenu:management']
+local gangEmployees = view(gangDefinition, 'employees').content.blocks[2]
+local member = item(gangEmployees, 'MEM-1')
+equal(view(gangDefinition, 'employees').content.title, 'Gang roster', 'gangs use the management roster')
+equal(#member.metadata, 1, 'gang members do not display job pay')
+equal(member.metadata[1].label, 'Rank', 'gang members display their rank')
+equal(action(member.actions, 'boss:fire').label, 'Kick', 'gang removal is presented as a kick')
+
+menuData = copyMenu()
+commands[Config.command]()
+definition = appDefinitions['qbbossmenu:management']
+
 local questions = view(definition, 'questions')
 check(action(questions.content.actions, 'boss:add-question').fields, 'question creation uses a header action form')
 check(item(questions.content.blocks[1], '1'), 'existing questions are listed')
