@@ -39,7 +39,9 @@ check(not client:find('QB.nui.isAppOpen', 1, true),
     'boss menu does not call the removed cross-resource isAppOpen guard')
 
 check(not server:find('row.balance', 1, true), 'boss menu does not maintain a balance on its job row')
-check(not client:find('data.bank', 1, true), 'boss menu does not receive or display a balance snapshot')
+check(client:find('data.accountBalance', 1, true), 'boss menu displays the qbbanking account balance on the employee page')
+check(server:find('accountBalance = exports.qbbanking:GetAccountBalance(job.name)', 1, true),
+    'authorized job data reads the current balance from qbbanking')
 check(server:find("exports.qbbanking:AddMoney", 1, true), 'business credits delegate to qbbanking')
 check(server:find("exports.qbbanking:RemoveMoney", 1, true), 'business debits delegate to qbbanking')
 check(server:find("exports.qbbanking:GetAccountBalance", 1, true), 'business balance reads delegate to qbbanking')

@@ -18,7 +18,7 @@ end
 
 local function copyMenu(overrides)
     local data = {
-        jobName = 'police', jobLabel = 'Police',
+        jobName = 'police', jobLabel = 'Police', accountBalance = 2500,
         employees = {
             { citizenid = 'EMP-1', name = 'Alex Officer', jobName = 'police', jobLabel = 'Police', level = 1, gradeName = 'Officer', pay = 100, online = true },
         },
@@ -159,7 +159,12 @@ equal(applicant.children[1].description, 'To help.', 'application answers are ne
 check(action(applicant.actions, 'boss:accept'), 'applicant hire action is available')
 check(action(applicant.actions, 'boss:deny'), 'applicant deny action is available')
 
-local employees = view(definition, 'employees').content.blocks[1]
+local employeeView = view(definition, 'employees').content
+local balance = employeeView.blocks[1].items[1]
+equal(balance.label, 'Business balance', 'employees display the current business balance')
+equal(balance.value, '$2500', 'employees format the current business balance')
+
+local employees = employeeView.blocks[2]
 equal(employees.layout, 'cards', 'employees use card layout')
 equal(employees.searchable, true, 'employees are searchable')
 local employee = item(employees, 'EMP-1')

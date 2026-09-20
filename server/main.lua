@@ -133,7 +133,12 @@ QB.callback.register('qbbossmenu:server:getJobData', function(src)
     local definition = jobDefinition(job.name)
     local grades, employees = {}, employeeRows(job.name)
     for level, grade in ipairs(definition.grades) do grades[#grades + 1] = { name = grade.name, grade = level, pay = grade.payment or 0 } end
-    return { jobGrades = grades, employees = employees or {}, applicants = row.applicants, questions = row.questions, logs = row.logs, jobName = job.name, jobLabel = definition.label or job.name }
+    return {
+        jobGrades = grades, employees = employees or {}, applicants = row.applicants,
+        questions = row.questions, logs = row.logs, jobName = job.name,
+        jobLabel = definition.label or job.name,
+        accountBalance = exports.qbbanking:GetAccountBalance(job.name),
+    }
 end)
 
 QB.callback.register('qbbossmenu:server:getApplication', function(_, jobName)

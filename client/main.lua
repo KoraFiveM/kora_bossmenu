@@ -120,9 +120,12 @@ local function appDefinition()
                     items = applicants, empty = 'There are no pending applications.' } },
             } },
             { id = 'employees', label = 'Employees', icon = 'users', badge = #employees, content = {
-                title = 'Employee roster', description = 'Ranks, bonuses, and employment remain server-authoritative.',
-                blocks = { { type = 'list', id = 'employees', layout = 'cards', searchable = true, pageSize = 8,
-                    items = employees, empty = 'No employees were found.' } },
+                title = 'Employee roster', description = 'Current business funds are available for bonuses.',
+                blocks = {
+                    { type = 'stats', items = { { label = 'Business balance', value = money(data.accountBalance), icon = 'landmark', tone = 'primary' } } },
+                    { type = 'list', id = 'employees', layout = 'cards', searchable = true, pageSize = 8,
+                    items = employees, empty = 'No employees were found.' },
+                },
             } },
             { id = 'questions', label = 'Questions', icon = 'help-circle', badge = #questions, content = {
                 title = 'Application questions',
