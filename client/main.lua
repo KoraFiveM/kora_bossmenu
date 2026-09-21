@@ -172,7 +172,7 @@ local function appDefinition()
 
             local ok, err = QB.callback.trigger('qbbossmenu:server:' .. endpoint, payload)
             if not ok then return { notice = { tone = 'destructive', message = err or 'The management action was declined.' } } end
-            local refreshed, refreshErr = QB.callback.trigger('qbbossmenu:server:getJobData')
+            local refreshed, refreshErr = QB.callback.trigger('qbbossmenu:server:getJobData', latest.roleType)
             if not refreshed then return { notice = { tone = 'warning', message = refreshErr or 'Saved, but the view could not refresh.' } } end
             currentData = refreshed
             local updated = appDefinition()
