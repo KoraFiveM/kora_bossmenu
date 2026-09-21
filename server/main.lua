@@ -39,10 +39,10 @@ local function ensureRole(roleType, roleName)
     if err then return nil, 'Could not load boss-menu data.' end
     if not row then
         local inserted, insertErr = QB.sql.insert('INSERT INTO `qbbossmenu_jobs` (`job`,`questions`,`applicants`,`logs`) VALUES (?, ?, ?, ?)', {
-            key, json.encode(Config.defaultQuestions), '[]', '[]',
+            key, json.encode(Config.defaultQuestions[roleType]), '[]', '[]',
         })
         if not inserted then return nil, insertErr or 'Could not create job data.' end
-        row = { job = key, questions = json.encode(Config.defaultQuestions), applicants = '[]', logs = '[]' }
+        row = { job = key, questions = json.encode(Config.defaultQuestions[roleType]), applicants = '[]', logs = '[]' }
     end
     row.roleType, row.roleName = roleType, roleName
     row.questions = decode(row.questions, {})
