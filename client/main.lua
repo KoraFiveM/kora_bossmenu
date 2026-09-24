@@ -172,7 +172,7 @@ local function appDefinition()
 
             local ok, err = QB.callback.trigger('qbbossmenu:server:' .. endpoint, payload)
             if not ok then return { notice = { tone = 'destructive', message = err or 'The management action was declined.' } } end
-            local refreshed, refreshErr = QB.callback.trigger('qbbossmenu:server:getJobData')
+            local refreshed, refreshErr = QB.callback.trigger('qbbossmenu:server:getJobData', latest.roleType)
             if not refreshed then return { notice = { tone = 'warning', message = refreshErr or 'Saved, but the view could not refresh.' } } end
             currentData = refreshed
             local updated = appDefinition()
@@ -213,6 +213,7 @@ RegisterCommand(Config.command, function(_, args)
     args = args or {}
     openBossMenu(args[1] == 'gang' and 'gang' or nil)
 end, false)
+
 RegisterCommand(Config.applicationCommand, function(_, args)
     args = args or {}
     if not args[1] then return notify(('Usage: /%s [job]'):format(Config.applicationCommand), 'error') end
@@ -229,3 +230,50 @@ end)
 
 exports('openBossMenu', openBossMenu)
 exports('openApplication', openApplication)
+
+local function initLocations(data, Type)
+    for _, job in ipairs(data) do
+        if job.bossmenu then
+            for _, location in ipairs(job.bossmenu) do
+                exports.qbtarget:addBoxZone({
+                    coords = location,
+                    size = vector3(1, 1, 1),
+                    options = {
+                        {
+                            icon = "fas fa-briefcase",
+                            label = "Open Boss Menu",
+                            onSelect = function()
+                                openBossMenu(Type)
+                            end,
+                            canInteract = function()
+                                local isBoss = Type == 'gang' and QB.callback.trigger('qbbossmenu:server:isGangBoss') or QB.callback.trigger('qbbossmenu:server:isJobBoss')
+                                return isBoss
+                            end
+                        },
+                    },
+                    distance = 2.5,
+                })
+            end
+        end
+        if job.apply then
+            for _, location in ipairs(job.apply) do
+                exports.qbtarget:addBoxZone({
+                    coords = location,
+                    size = vector3(1, 1, 1),
+                    options = {
+                        {
+                            icon = "fas fa-briefcase",
+                            label = "Apply for Job",
+                            onSelect = function()
+                                openApplication(job.job, Type)
+                            end,
+                        },
+                    },
+                    distance = 2.5,
+                })
+            end
+        end
+    end
+end
+initLocations(Config.Menus.job)
+initLocations(Config.Menus.gang, 'gang')
