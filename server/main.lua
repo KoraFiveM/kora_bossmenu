@@ -124,7 +124,7 @@ local function updateRoster(citizenid, roleType, roleName, grade)
     end
     local target = exports.qbcore:getPlayerByCitizenId(citizenid)
     if target then return exports.qbcore:setGang(target.source, grade and roleName or 'none', grade or 1) end
-    local offline = exports['qb-core']:GetOfflinePlayerByCitizenId(citizenid)
+    local offline = exports['qb-core']:GetOfflinePlayer(citizenid)
     if not offline or not offline.Functions.SetGang(grade and roleName or 'none', (grade or 1) - 1) then return false, 'Could not update gang member.' end
     return offline.Functions.Save()
 end
@@ -319,10 +319,7 @@ QB.callback.register('qbbossmenu:server:giveBonus', function(src, data)
     if target then
         paid, payErr = exports.qbcore:addMoney(target.source, 'bank', amount, 'boss-menu-bonus')
     else
-        -- A bonus is a bank credit even when the employee is offline. The
-        -- compatibility object gives us Player.Functions.AddMoney/Save without
-        -- issuing a separate player lookup for every roster entry.
-        local offline = exports['qb-core']:GetOfflinePlayerByCitizenId(data.citizenid)
+        local offline = exports['qb-core']:GetOfflinePlayer(data.citizenid)
         if offline then
             paid = offline.Functions.AddMoney('bank', amount)
             if paid then paid = offline.Functions.Save() end
@@ -340,8 +337,6 @@ QB.callback.register('qbbossmenu:server:giveBonus', function(src, data)
     return true
 end, { rateLimit = { max = 5, window = 10000 } })
 
----Compatibility aliases for resources that previously used qbbossmenu as the
----society ledger. qbbanking is now the only owner of that money.
 exports('addBusinessMoney', function(jobName, amount, reason)
     if not ready or not roleDefinition('job', jobName) then return false, 'unknown job' end
     amount = math.floor(tonumber(amount) or 0)

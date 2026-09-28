@@ -209,17 +209,6 @@ local function openBossMenu(roleType)
     end)
 end
 
-RegisterCommand(Config.command, function(_, args)
-    args = args or {}
-    openBossMenu(args[1] == 'gang' and 'gang' or nil)
-end, false)
-
-RegisterCommand(Config.applicationCommand, function(_, args)
-    args = args or {}
-    if not args[1] then return notify(('Usage: /%s [job]'):format(Config.applicationCommand), 'error') end
-    openApplication(args[1], args[2] == 'gang' and 'gang' or nil)
-end, false)
-
 RegisterNetEvent('qb-bossmenu:client:OpenMenu', function()
     if QB.callback.trigger('qbbossmenu:server:isJobBoss') then openBossMenu() end
 end)
