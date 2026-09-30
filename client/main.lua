@@ -221,6 +221,7 @@ exports('openBossMenu', openBossMenu)
 exports('openApplication', openApplication)
 
 local function initLocations(data, Type)
+    local roleType = Type == 'gang' and 'gang' or 'job'
     for _, job in ipairs(data) do
         if job.bossmenu then
             for _, location in ipairs(job.bossmenu) do
@@ -235,8 +236,11 @@ local function initLocations(data, Type)
                                 openBossMenu(Type)
                             end,
                             canInteract = function()
-                                local isBoss = Type == 'gang' and QB.callback.trigger('qbbossmenu:server:isGangBoss') or QB.callback.trigger('qbbossmenu:server:isJobBoss')
-                                return isBoss
+                                local role = exports.qbcore:getPlayerData({ roleType })
+                                if not role or role.name == (roleType == 'gang' and 'none' or 'unemployed') then return false end
+                                local definition = QB.shared.get(roleType == 'gang' and 'gangs' or 'jobs', role.name)
+                                local grade = definition and definition.grades and definition.grades[role.grade and role.grade.level]
+                                return grade and grade.isboss == true or false
                             end
                         },
                     },

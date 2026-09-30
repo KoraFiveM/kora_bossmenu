@@ -1,5 +1,5 @@
 local root = debug.getinfo(1, 'S').source:sub(2):match('(.*/)') .. '../'
-local commands, events, registeredExports, serverCalls = {}, {}, {}, {}
+local events, registeredExports, serverCalls, targetZones = {}, {}, {}, {}
 local appDefinitions, openedApps, inputDialogs, notifications = {}, {}, {}, {}
 local rawCallbacks, directMessages, focusChanges, directCloses = 0, 0, 0, 0
 local assertions = 0
@@ -47,24 +47,37 @@ local defaultApplicationData = applicationData
 local applicationError
 local dialogResult = { cancelled = true }
 local legacyAllowed = true
+local menuError
+local playerData = {
+    job = { name = 'police', grade = { level = 2 }, isboss = true },
+    gang = { name = 'ballas', grade = { level = 1 }, isboss = false },
+}
+local roles = {
+    jobs = { police = { grades = { { isboss = false }, { isboss = true } } } },
+    gangs = { ballas = { grades = { { isboss = false }, { isboss = true } } } },
+}
 
 _G.GetCurrentResourceName = function() return 'qbbossmenu' end
-_G.RegisterCommand = function(name, fn) commands[name] = fn end
+_G.vector3 = function(x, y, z) return { x = x, y = y, z = z } end
 _G.RegisterNetEvent = function(name, fn) events[name] = fn end
 _G.RegisterNUICallback = function() rawCallbacks = rawCallbacks + 1 end
 _G.SetNuiFocus = function() focusChanges = focusChanges + 1 end
 _G.SendNUIMessage = function() directMessages = directMessages + 1 end
 _G.CreateThread = function(fn) fn() end
-_G.exports = setmetatable({}, { __call = function(_, name, fn) registeredExports[name] = fn end })
+_G.exports = setmetatable({
+    qbtarget = { addBoxZone = function(_, zone) targetZones[#targetZones + 1] = zone end },
+    qbcore = { getPlayerData = function(_, path) return playerData and playerData[path[1]] end },
+}, { __call = function(_, name, fn) registeredExports[name] = fn end })
 
 local function responseFor(name)
-    if name == 'qbbossmenu:server:getJobData' then return table.pack(menuData) end
+    if name == 'qbbossmenu:server:getJobData' then return table.pack(menuData, menuError) end
     if name == 'qbbossmenu:server:getApplication' then return table.pack(applicationData, applicationError) end
     if name == 'qbbossmenu:server:isJobBoss' or name == 'qbbossmenu:server:isGangBoss' then return table.pack(legacyAllowed) end
     return table.pack(true)
 end
 
 _G.QB = {
+    shared = { get = function(name, key) return roles[name] and roles[name][key] end },
     nui = {
         registerApp = function(definition)
             appDefinitions[definition.id] = definition
@@ -129,14 +142,70 @@ local function exercise(definition, actionId, context, endpoint)
     return call.args[1], result
 end
 
-check(commands[Config.command], 'boss-menu command is registered')
-check(commands[Config.applicationCommand], 'application command is registered')
 check(registeredExports.openBossMenu, 'boss-menu export is registered')
 check(registeredExports.openApplication, 'application export is registered')
 check(events['qb-bossmenu:client:OpenMenu'], 'legacy job-boss event is registered')
 check(events['qb-gangmenu:client:OpenMenu'], 'legacy gang-boss event is registered')
 
-commands[Config.command]()
+equal(#targetZones, 5, 'configured boss and application targets are registered')
+local jobTarget, gangTarget = targetZones[1].options[1], targetZones[4].options[1]
+equal(jobTarget.label, 'Open Boss Menu', 'job boss target is retained')
+equal(gangTarget.label, 'Open Boss Menu', 'gang boss target is retained')
+equal(targetZones[2].options[1].canInteract, nil, 'application targets remain available without a boss gate')
+local callsBeforeVisibility = #serverCalls
+for _ = 1, 40 do
+    jobTarget.canInteract()
+    gangTarget.canInteract()
+end
+equal(#serverCalls, callsBeforeVisibility, 'repeated visibility checks never request server callbacks')
+equal(jobTarget.canInteract(), true, 'mirrored job boss can see the target')
+equal(gangTarget.canInteract(), false, 'job boss cannot satisfy the gang target gate')
+playerData.gang.grade.level = 2
+equal(gangTarget.canInteract(), true, 'gang promotion is reflected immediately')
+playerData.job.grade.level = 1
+equal(jobTarget.canInteract(), false, 'demotion overrides an old copied isboss flag')
+roles.jobs.police.grades[1].isboss = true
+equal(jobTarget.canInteract(), true, 'shared grade changes are reflected immediately')
+roles.jobs.police.grades[1].isboss = false
+playerData.job.grade = nil
+equal(jobTarget.canInteract(), false, 'missing mirrored grade hides the target')
+playerData.job.grade = { level = 99 }
+equal(jobTarget.canInteract(), false, 'unknown mirrored grade hides the target')
+playerData.job.name = 'unknown'
+equal(jobTarget.canInteract(), false, 'unknown mirrored role hides the target')
+roles.jobs.unemployed = { grades = { { isboss = true } } }
+roles.gangs.none = { grades = { { isboss = true } } }
+playerData.job = { name = 'unemployed', grade = { level = 1 } }
+playerData.gang = { name = 'none', grade = { level = 1 } }
+equal(jobTarget.canInteract(), false, 'unemployed role stays ineligible')
+equal(gangTarget.canInteract(), false, 'no-gang role stays ineligible')
+playerData = nil
+equal(jobTarget.canInteract(), false, 'unloaded player hides job target')
+equal(gangTarget.canInteract(), false, 'unloaded player hides gang target')
+playerData = {}
+equal(jobTarget.canInteract(), false, 'missing role hides target')
+playerData.job = { name = 'police', grade = { level = 2 } }
+local policeDefinition = roles.jobs.police
+roles.jobs.police = nil
+equal(jobTarget.canInteract(), false, 'unloaded shared definition hides target')
+roles.jobs.police = {}
+equal(jobTarget.canInteract(), false, 'shared definition without grades hides target')
+roles.jobs.police = policeDefinition
+equal(#serverCalls, callsBeforeVisibility, 'live role changes never request server callbacks')
+
+local opensBeforeSelection = #openedApps
+menuData, menuError = nil, 'You are no longer a boss.'
+jobTarget.onSelect()
+equal(lastServerCall('qbbossmenu:server:getJobData').name, 'qbbossmenu:server:getJobData', 'selection still requests authorized server data')
+equal(#openedApps, opensBeforeSelection, 'server denial prevents opening after a local visibility check')
+equal(notifications[#notifications].message, menuError, 'selection preserves the server denial reason')
+menuData, menuError = copyMenu(), nil
+jobTarget.onSelect()
+equal(#openedApps, opensBeforeSelection + 1, 'authorized job selection opens the menu')
+gangTarget.onSelect()
+equal(lastServerCall('qbbossmenu:server:getJobData').args[1], 'gang', 'gang selection requests gang authorization')
+
+registeredExports.openBossMenu()
 local definition = appDefinitions['qbbossmenu:management']
 check(definition, 'boss menu registers an AppShell definition')
 equal(openedApps[#openedApps], 'qbbossmenu:management', 'boss menu opens the registered AppShell')
@@ -154,7 +223,7 @@ events['qb-bossmenu:client:OpenMenu']()
 equal(#openedApps, openedBeforeLegacy + 2, 'denied legacy events do not open the menu')
 legacyAllowed = true
 menuData = copyMenu()
-commands[Config.command]()
+registeredExports.openBossMenu()
 definition = appDefinitions['qbbossmenu:management']
 equal(#definition.navigation, 5, 'all management workspaces are present')
 check(view(definition, 'overview'), 'overview workspace is present')
@@ -203,7 +272,7 @@ menuData = copyMenu({
     roleType = 'gang', jobName = 'ballas', jobLabel = 'Ballas',
     employees = { { citizenid = 'MEM-1', name = 'Alex Member', jobName = 'ballas', jobLabel = 'Ballas', level = 1, gradeName = 'Associate', online = true } },
 })
-commands[Config.command](nil, { 'gang' })
+registeredExports.openBossMenu('gang')
 local gangDefinition = appDefinitions['qbbossmenu:management']
 local gangEmployees = view(gangDefinition, 'employees').content.blocks[2]
 local member = item(gangEmployees, 'MEM-1')
@@ -213,7 +282,7 @@ equal(member.metadata[1].label, 'Rank', 'gang members display their rank')
 equal(action(member.actions, 'boss:fire').label, 'Kick', 'gang removal is presented as a kick')
 
 menuData = copyMenu()
-commands[Config.command]()
+registeredExports.openBossMenu()
 definition = appDefinitions['qbbossmenu:management']
 
 local questions = view(definition, 'questions')
@@ -260,13 +329,13 @@ equal(stashResult.notice.tone, 'success', 'stash returns a shell-owned success n
 equal(directCloses, 0, 'stash relies on closeBeforeAction instead of closing directly')
 
 applicationData, applicationError = nil, 'Applications are closed.'
-commands[Config.applicationCommand](nil, { 'police' })
+registeredExports.openApplication('police')
 equal(notifications[#notifications].message, 'Applications are closed.',
     'application errors returned after a nil result reach the notification')
 
 applicationData, applicationError = defaultApplicationData, nil
 dialogResult = { values = { ['1'] = 'An answer', ['2'] = 'A longer answer' } }
-commands[Config.applicationCommand](nil, { 'police' })
+registeredExports.openApplication('police')
 local dialog = inputDialogs[#inputDialogs]
 equal(dialog.title, 'Apply: Police', 'application uses the shared input dialog')
 equal(#dialog.fields, 2, 'application creates one field per configured question')
