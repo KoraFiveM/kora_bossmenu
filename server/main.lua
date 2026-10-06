@@ -124,9 +124,7 @@ local function updateRoster(citizenid, roleType, roleName, grade)
     end
     local target = exports.qbcore:getPlayerByCitizenId(citizenid)
     if target then return exports.qbcore:setGang(target.source, grade and roleName or 'none', grade or 1) end
-    local offline = exports['qb-core']:GetOfflinePlayer(citizenid)
-    if not offline or not offline.Functions.SetGang(grade and roleName or 'none', (grade or 1) - 1) then return false, 'Could not update gang member.' end
-    return offline.Functions.Save()
+    return exports.qbcore:setOfflineGang(citizenid, grade and roleName or 'none', grade or 1)
 end
 
 local function nameFor(citizenid)
@@ -319,12 +317,7 @@ QB.callback.register('qbbossmenu:server:giveBonus', function(src, data)
     if target then
         paid, payErr = exports.qbcore:addMoney(target.source, 'bank', amount, 'boss-menu-bonus')
     else
-        local offline = exports['qb-core']:GetOfflinePlayer(data.citizenid)
-        if offline then
-            paid = offline.Functions.AddMoney('bank', amount)
-            if paid then paid = offline.Functions.Save() end
-        end
-        payErr = paid and nil or 'Could not save the offline player.'
+        paid, payErr = exports.qbcore:addOfflineMoney(data.citizenid, 'bank', amount)
     end
     if not paid then
         if not exports.qbbanking:AddMoney(row.roleName, amount, 'boss-menu-bonus-refund') then
