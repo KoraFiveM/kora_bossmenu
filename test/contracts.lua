@@ -32,8 +32,8 @@ for _, name in ipairs({ 'addBusinessMoney', 'removeBusinessMoney', 'getBusinessB
         ('server export %s is declared for LuaLS'):format(name))
 end
 
--- qbbossmenu owns its AppShell session state locally. This keeps opening the
--- menu independent of qblib's generated export lookup and catches the exact
+-- kora_bossmenu owns its AppShell session state locally. This keeps opening the
+-- menu independent of kora_lib's generated export lookup and catches the exact
 -- broken call that previously reached production.
 check(not client:find('QB.nui.isAppOpen', 1, true),
     'boss menu does not call the removed cross-resource isAppOpen guard')
@@ -44,16 +44,16 @@ check(client:find("RegisterNetEvent('qb-bossmenu:client:OpenMenu'", 1, true), 'l
 check(client:find("RegisterNetEvent('qb-gangmenu:client:OpenMenu'", 1, true), 'legacy gang event is registered')
 check(server:find("QB.callback.register('qbbossmenu:server:isJobBoss'", 1, true), 'job authorization callback is registered')
 check(server:find("QB.callback.register('qbbossmenu:server:isGangBoss'", 1, true), 'gang authorization callback is registered')
-check(server:find('accountBalance = exports.qbbanking:GetAccountBalance(role.name)', 1, true),
+check(server:find('accountBalance = exports.kora_banking:GetAccountBalance(role.name)', 1, true),
     'authorized job data reads the current balance from qbbanking')
 check(server:find("JSON_UNQUOTE(JSON_EXTRACT(`gang`, '$.name'))", 1, true),
     'gang rosters are read from the persisted players table')
-check(server:find('exports.qbcore:setGang', 1, true), 'online gang rank changes use qbcore')
+check(server:find('exports.kora_core:setGang', 1, true), 'online gang rank changes use qbcore')
 check(server:find('jobLabel = definition.label or jobName', 1, true),
     'employee labels come from the job definition, not the minimal roster row')
-check(server:find("exports.qbbanking:AddMoney", 1, true), 'business credits delegate to qbbanking')
-check(server:find("exports.qbbanking:RemoveMoney", 1, true), 'business debits delegate to qbbanking')
-check(server:find("exports.qbbanking:GetAccountBalance", 1, true), 'business balance reads delegate to qbbanking')
+check(server:find("exports.kora_banking:AddMoney", 1, true), 'business credits delegate to qbbanking')
+check(server:find("exports.kora_banking:RemoveMoney", 1, true), 'business debits delegate to qbbanking')
+check(server:find("exports.kora_banking:GetAccountBalance", 1, true), 'business balance reads delegate to qbbanking')
 check(server:find('DROP COLUMN IF EXISTS `balance`', 1, true), 'startup removes the obsolete balance column')
 check(not schema:find('`balance`', 1, true), 'new installs do not create a boss-menu balance column')
 check(server:find("acceptedChecksums = { 'a3aa4c49' }", 1, true),

@@ -225,7 +225,7 @@ local function initLocations(data, Type)
     for _, job in ipairs(data) do
         if job.bossmenu then
             for _, location in ipairs(job.bossmenu) do
-                exports.qbtarget:addBoxZone({
+                exports.kora_target:addBoxZone({
                     coords = location,
                     size = vector3(1, 1, 1),
                     options = {
@@ -236,7 +236,7 @@ local function initLocations(data, Type)
                                 openBossMenu(Type)
                             end,
                             canInteract = function()
-                                local role = exports.qbcore:getPlayerData({ roleType })
+                                local role = exports.kora_core:getPlayerData({ roleType })
                                 if not role or role.name == (roleType == 'gang' and 'none' or 'unemployed') then return false end
                                 local definition = QB.shared.get(roleType == 'gang' and 'gangs' or 'jobs', role.name)
                                 local grade = definition and definition.grades and definition.grades[role.grade and role.grade.level]
@@ -250,7 +250,7 @@ local function initLocations(data, Type)
         end
         if job.apply then
             for _, location in ipairs(job.apply) do
-                exports.qbtarget:addBoxZone({
+                exports.kora_target:addBoxZone({
                     coords = location,
                     size = vector3(1, 1, 1),
                     options = {

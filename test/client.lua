@@ -57,7 +57,7 @@ local roles = {
     gangs = { ballas = { grades = { { isboss = false }, { isboss = true } } } },
 }
 
-_G.GetCurrentResourceName = function() return 'qbbossmenu' end
+_G.GetCurrentResourceName = function() return 'kora_bossmenu' end
 _G.vector3 = function(x, y, z) return { x = x, y = y, z = z } end
 _G.RegisterNetEvent = function(name, fn) events[name] = fn end
 _G.RegisterNUICallback = function() rawCallbacks = rawCallbacks + 1 end
@@ -65,8 +65,8 @@ _G.SetNuiFocus = function() focusChanges = focusChanges + 1 end
 _G.SendNUIMessage = function() directMessages = directMessages + 1 end
 _G.CreateThread = function(fn) fn() end
 _G.exports = setmetatable({
-    qbtarget = { addBoxZone = function(_, zone) targetZones[#targetZones + 1] = zone end },
-    qbcore = { getPlayerData = function(_, path) return playerData and playerData[path[1]] end },
+    kora_target = { addBoxZone = function(_, zone) targetZones[#targetZones + 1] = zone end },
+    kora_core = { getPlayerData = function(_, path) return playerData and playerData[path[1]] end },
 }, { __call = function(_, name, fn) registeredExports[name] = fn end })
 
 local function responseFor(name)
@@ -353,8 +353,8 @@ local manifestFile = assert(io.open(root .. 'fxmanifest.lua', 'r'))
 local manifest = manifestFile:read('*a')
 manifestFile:close()
 check(not manifest:find('ui_page', 1, true), 'private browser page is no longer loaded')
-check(not manifest:find('@qbtheme/client/bridge.lua', 1, true), 'obsolete private theme bridge is no longer loaded')
-check(not manifest:find("dependency 'qbtheme'", 1, true), 'obsolete direct qbtheme dependency is removed')
+check(not manifest:find('@kora_theme/client/bridge.lua', 1, true), 'obsolete private theme bridge is no longer loaded')
+check(not manifest:find("dependency 'kora_theme'", 1, true), 'obsolete direct qbtheme dependency is removed')
 check(manifest:find("client_script 'client/main.lua'", 1, true), 'AppShell client remains in the manifest')
 
 print(('qbbossmenu client: %d assertions passed'):format(assertions))

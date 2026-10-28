@@ -1,28 +1,28 @@
-# qbbossmenu
+# kora_bossmenu
 
-Native boss menu for the qbcore2 stack. It uses `qblib`, `qbsql`, `qbcore`,
-`qbinventory`, and `qbmultijob`; it has no ox_lib, oxmysql, community bridge,
+Native boss menu for the qbcore2 stack. It uses `kora_lib`, `kora_sql`, `kora_core`,
+`kora_inventory`, and `kora_multijob`; it has no ox_lib, oxmysql, community bridge,
 or legacy QBCore dependency.
 
 - `/openbossmenu` opens the active job's boss menu for an `isboss` grade; use
   `/openbossmenu gang` for the active gang. Gang rosters are read from the
   persisted player records, have ranks but no pay, and use **Kick** to remove a
   member.
-- `/jobapply <job>` opens a qblib input form generated from that job's questions.
-- `exports.qbbossmenu:openBossMenu()` and `exports.qbbossmenu:openApplication(job)`
+- `/jobapply <job>` opens a kora_lib input form generated from that job's questions.
+- `exports.kora_bossmenu:openBossMenu()` and `exports.kora_bossmenu:openApplication(job)`
   are available to attach the flows to another resource's interaction.
 
 The resource migrates `qbbossmenu_jobs` on start for applications and activity
 only. Any obsolete boss-menu balance column is removed during startup. Job
-society balances are owned by `qbbanking`; bonuses debit that account directly.
+society balances are owned by `kora_banking`; bonuses debit that account directly.
 The legacy `addBusinessMoney`,
 `removeBusinessMoney`, and `getBusinessBalance` exports remain as delegates to
-qbbanking for existing business resources.
+kora_banking for existing business resources.
 
-The management console uses qblib's AppShell for its overview, applicant
+The management console uses kora_lib's AppShell for its overview, applicant
 answers, employee cards, shared action forms, question management, and activity
-timeline. qbbossmenu still owns all data, permission checks, and mutations. The
-stash action closes AppShell before handing focus to qbinventory.
+timeline. kora_bossmenu still owns all data, permission checks, and mutations. The
+stash action closes AppShell before handing focus to kora_inventory.
 
 The old `web/` source and build are retained temporarily for parity review, but
 they are no longer loaded by the resource manifest.

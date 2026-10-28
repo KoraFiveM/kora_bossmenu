@@ -2,22 +2,24 @@ fx_version 'cerulean'
 game 'gta5'
 lua54 'yes'
 
-name 'qbbossmenu'
+name 'kora_bossmenu'
+-- Keep the legacy resource name resolvable for exports['qbbossmenu'] callers.
+provide 'qbbossmenu'
 author 'qbcore2'
 version '2.0.0'
 description 'Job management, applications, employee roster, stash and bonuses for qbcore'
 
-dependency 'qblib'
-dependency 'qbsql'
-dependency 'qbcore'
-dependency 'qbinventory'
-dependency 'qbmultijob'
-dependency 'qbbanking'
+dependency 'kora_lib'
+dependency 'kora_sql'
+dependency 'kora_core'
+dependency 'kora_inventory'
+dependency 'kora_multijob'
+dependency 'kora_banking'
 
 shared_scripts {
-    '@qblib/init.lua',
-    '@qbsql/init.lua',
-    '@qbcore/init.lua',
+    '@kora_lib/init.lua',
+    '@kora_sql/init.lua',
+    '@kora_core/init.lua',
     'shared.lua',
 }
 

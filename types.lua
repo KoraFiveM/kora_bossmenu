@@ -1,6 +1,6 @@
 ---@meta
 
--- Annotation-only declaration of qbbossmenu's cross-resource contract. Keep
+-- Annotation-only declaration of kora_bossmenu's cross-resource contract. Keep
 -- this in sync with the executable export contract in test/contracts.lua so
 -- LuaLS can flag misspelled or renamed calls before they reach FXServer.
 

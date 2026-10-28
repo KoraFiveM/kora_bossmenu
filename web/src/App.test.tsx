@@ -37,7 +37,7 @@ function called(action: string) {
 }
 
 beforeEach(() => {
-  window.GetParentResourceName = () => "qbbossmenu"
+  window.GetParentResourceName = () => "kora_bossmenu"
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response()))
 })
 

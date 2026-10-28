@@ -1,7 +1,7 @@
 export function resourceName(): string {
   return typeof window.GetParentResourceName === "function"
     ? window.GetParentResourceName()
-    : "qbbossmenu"
+    : "kora_bossmenu"
 }
 
 export async function postNui<T = boolean>(name: string, data: unknown = {}): Promise<T> {

@@ -14,7 +14,7 @@ local function roleDefinition(roleType, name)
 end
 
 local function actorRole(src, roleType)
-    local data = exports.qbcore:getPlayerData(src)
+    local data = exports.kora_core:getPlayerData(src)
     return data and data[roleType] or nil
 end
 
@@ -65,7 +65,7 @@ local function addLog(row, message)
 end
 
 local function jobEmployees(jobName)
-    local rows, err = exports.qbmultijob:getEmployees(jobName)
+    local rows, err = exports.kora_multijob:getEmployees(jobName)
     if not rows then return nil, err or 'Could not load employee roster.' end
     local definition = roleDefinition('job', jobName)
     local result = {}
@@ -73,7 +73,7 @@ local function jobEmployees(jobName)
         local gradeNumber = tonumber(row.level)
         local grade = gradeNumber and definition.grades[gradeNumber]
         if grade then
-            local online = exports.qbcore:getPlayerByCitizenId(row.citizenid) ~= nil
+            local online = exports.kora_core:getPlayerByCitizenId(row.citizenid) ~= nil
             result[#result + 1] = {
                 citizenid = row.citizenid, name = row.name,
                 jobName = jobName, jobLabel = definition.label or jobName,
@@ -97,7 +97,7 @@ local function gangEmployees(gangName)
             result[#result + 1] = {
                 citizenid = row.citizenid, name = row.name, jobName = gangName,
                 jobLabel = definition.label or gangName, level = level, gradeName = grade.name,
-                online = exports.qbcore:getPlayerByCitizenId(row.citizenid) ~= nil,
+                online = exports.kora_core:getPlayerByCitizenId(row.citizenid) ~= nil,
             }
         end
     end
@@ -119,16 +119,16 @@ end
 
 local function updateRoster(citizenid, roleType, roleName, grade)
     if roleType ~= 'gang' then
-        if grade then return exports.qbmultijob:setEmployeeJob(citizenid, roleName, grade) end
-        return exports.qbmultijob:removeEmployeeJob(citizenid, roleName)
+        if grade then return exports.kora_multijob:setEmployeeJob(citizenid, roleName, grade) end
+        return exports.kora_multijob:removeEmployeeJob(citizenid, roleName)
     end
-    local target = exports.qbcore:getPlayerByCitizenId(citizenid)
-    if target then return exports.qbcore:setGang(target.source, grade and roleName or 'none', grade or 1) end
-    return exports.qbcore:setOfflineGang(citizenid, grade and roleName or 'none', grade or 1)
+    local target = exports.kora_core:getPlayerByCitizenId(citizenid)
+    if target then return exports.kora_core:setGang(target.source, grade and roleName or 'none', grade or 1) end
+    return exports.kora_core:setOfflineGang(citizenid, grade and roleName or 'none', grade or 1)
 end
 
 local function nameFor(citizenid)
-    local online = exports.qbcore:getPlayerByCitizenId(citizenid)
+    local online = exports.kora_core:getPlayerByCitizenId(citizenid)
     if online then return online.name or citizenid end
     local row = QB.sql.single('SELECT `name`,`charinfo` FROM `players` WHERE `citizenid` = ? AND `deleted_at` IS NULL', { citizenid })
     if not row then return citizenid end
@@ -185,7 +185,7 @@ QB.callback.register('qbbossmenu:server:getJobData', function(src, requestedRole
         jobGrades = grades, employees = employees or {}, applicants = row.applicants,
         questions = row.questions, logs = row.logs, jobName = role.name,
         jobLabel = definition.label or role.name, roleType = roleType,
-        accountBalance = exports.qbbanking:GetAccountBalance(role.name),
+        accountBalance = exports.kora_banking:GetAccountBalance(role.name),
     }
 end)
 
@@ -202,7 +202,7 @@ QB.callback.register('qbbossmenu:server:submitApplication', function(src, jobNam
     roleType = roleType == 'gang' and 'gang' or 'job'
     local row, err = ensureRole(roleType, jobName)
     if not row then return false, err end
-    local player = exports.qbcore:getPlayerData(src)
+    local player = exports.kora_core:getPlayerData(src)
     if not player or not player.citizenid then return false, 'Character not loaded.' end
     for _, applicant in ipairs(row.applicants) do if applicant.citizenid == player.citizenid then return false, 'You already applied for this job.' end end
     local questions = {}
@@ -296,11 +296,11 @@ QB.callback.register('qbbossmenu:server:openStash', function(src, roleType)
     local ok, err = requireBoss(src, roleType, role.name)
     if not ok then return false, err end
     local id = ('qbbossmenu:%s:%s'):format(roleType, role.name)
-    exports.qbinventory:RegisterStash(id, (roleDefinition(roleType, role.name).label or role.name) .. ' Boss Stash', Config.stash.slots, Config.stash.maxWeight, false, { [role.name] = 1 })
-    -- `stashOpen`, not `openInventory`: qbinventory's server realm exports
+    exports.kora_inventory:RegisterStash(id, (roleDefinition(roleType, role.name).label or role.name) .. ' Boss Stash', Config.stash.slots, Config.stash.maxWeight, false, { [role.name] = 1 })
+    -- `stashOpen`, not `openInventory`: kora_inventory's server realm exports
     -- `OpenInventory`/`stashOpen`, and the lowercase `openInventory` is a
     -- CLIENT-realm export, so this call was resolving to nothing at all.
-    return exports.qbinventory:stashOpen(src, id)
+    return exports.kora_inventory:stashOpen(src, id)
 end)
 
 QB.callback.register('qbbossmenu:server:giveBonus', function(src, data)
@@ -308,19 +308,19 @@ QB.callback.register('qbbossmenu:server:giveBonus', function(src, data)
     local amount = math.floor(tonumber(data.amount) or 0)
     if amount <= 0 or type(data.citizenid) ~= 'string' then return false, 'Invalid bonus amount.' end
     if not isEmployee(data.citizenid, row.roleType, row.roleName) then return false, 'That person is not an employee.' end
-    if not exports.qbbanking:RemoveMoney(row.roleName, amount, 'boss-menu-bonus') then
+    if not exports.kora_banking:RemoveMoney(row.roleName, amount, 'boss-menu-bonus') then
         return false, 'The society does not have enough funds.'
     end
 
-    local target = exports.qbcore:getPlayerByCitizenId(data.citizenid)
+    local target = exports.kora_core:getPlayerByCitizenId(data.citizenid)
     local paid, payErr
     if target then
-        paid, payErr = exports.qbcore:addMoney(target.source, 'bank', amount, 'boss-menu-bonus')
+        paid, payErr = exports.kora_core:addMoney(target.source, 'bank', amount, 'boss-menu-bonus')
     else
-        paid, payErr = exports.qbcore:addOfflineMoney(data.citizenid, 'bank', amount)
+        paid, payErr = exports.kora_core:addOfflineMoney(data.citizenid, 'bank', amount)
     end
     if not paid then
-        if not exports.qbbanking:AddMoney(row.roleName, amount, 'boss-menu-bonus-refund') then
+        if not exports.kora_banking:AddMoney(row.roleName, amount, 'boss-menu-bonus-refund') then
             print(('^1[qbbossmenu]^7 bonus credit failed and society refund failed for %s'):format(row.roleName))
         end
         return false, payErr or 'Could not pay bonus.'
@@ -336,7 +336,7 @@ exports('addBusinessMoney', function(jobName, amount, reason)
     if amount <= 0 then return false, 'amount must be positive' end
     local row, err = ensureRole('job', jobName)
     if not row then return false, err end
-    if not exports.qbbanking:AddMoney(jobName, amount, reason or 'boss-menu-business-credit') then return false, 'could not credit society' end
+    if not exports.kora_banking:AddMoney(jobName, amount, reason or 'boss-menu-business-credit') then return false, 'could not credit society' end
     addLog(row, ('Business received $%d%s.'):format(amount, reason and (' (' .. tostring(reason):sub(1, 100) .. ')') or ''))
     return true
 end)
@@ -347,12 +347,12 @@ exports('removeBusinessMoney', function(jobName, amount, reason)
     if amount <= 0 then return false, 'amount must be positive' end
     local row, err = ensureRole('job', jobName)
     if not row then return false, err end
-    if not exports.qbbanking:RemoveMoney(jobName, amount, reason or 'boss-menu-business-debit') then return false, 'insufficient business funds' end
+    if not exports.kora_banking:RemoveMoney(jobName, amount, reason or 'boss-menu-business-debit') then return false, 'insufficient business funds' end
     addLog(row, ('Business paid out $%d%s.'):format(amount, reason and (' (' .. tostring(reason):sub(1, 100) .. ')') or ''))
     return true
 end)
 
 exports('getBusinessBalance', function(jobName)
     if not ready or not roleDefinition('job', jobName) then return nil, 'unknown job' end
-    return exports.qbbanking:GetAccountBalance(jobName)
+    return exports.kora_banking:GetAccountBalance(jobName)
 end)
