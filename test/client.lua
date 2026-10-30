@@ -347,7 +347,7 @@ equal(submit.args[2]['1'], 'An answer', 'application submission forwards dialog 
 
 equal(rawCallbacks, 0, 'migration registers no private NUI callbacks')
 equal(directMessages, 0, 'migration sends no private browser messages')
-equal(focusChanges, 0, 'migration delegates focus ownership to qblib')
+equal(focusChanges, 0, 'migration delegates focus ownership to kora_lib')
 
 local manifestFile = assert(io.open(root .. 'fxmanifest.lua', 'r'))
 local manifest = manifestFile:read('*a')
