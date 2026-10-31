@@ -44,4 +44,4 @@ Config.defaultQuestions = {
     }
 }
 
-if QB and QB.config and QB.config.adopt then Config = QB.config.adopt(Config) end
+if Kora and Kora.config and Kora.config.adopt then Config = Kora.config.adopt(Config) end

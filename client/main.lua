@@ -3,7 +3,7 @@ local currentData
 local appActive = false
 
 local function notify(message, type_)
-    QB.notify.send({ title = 'Boss Menu', message = message, type = type_ or 'info' })
+    Kora.notify.send({ title = 'Boss Menu', message = message, type = type_ or 'info' })
 end
 
 local function applicationFields(questions)
@@ -21,11 +21,11 @@ local function applicationFields(questions)
 end
 
 local function openApplication(jobName, roleType)
-    local job, err = QB.callback.trigger('qbbossmenu:server:getApplication', jobName, roleType)
+    local job, err = Kora.callback.trigger('qbbossmenu:server:getApplication', jobName, roleType)
     if not job then return notify(err or 'That job is not accepting applications.', 'error') end
-    local result = QB.nui.openInputDialog(applicationFields(job.questions), ('Apply: %s'):format(job.label), 'Complete every question to submit your application.')
+    local result = Kora.nui.openInputDialog(applicationFields(job.questions), ('Apply: %s'):format(job.label), 'Complete every question to submit your application.')
     if not result or result.cancelled then return end
-    local ok, submitErr = QB.callback.trigger('qbbossmenu:server:submitApplication', jobName, result.values, roleType)
+    local ok, submitErr = Kora.callback.trigger('qbbossmenu:server:submitApplication', jobName, result.values, roleType)
     notify(ok and 'Your application was submitted.' or (submitErr or 'Could not submit application.'), ok and 'success' or 'error')
 end
 
@@ -148,7 +148,7 @@ local function appDefinition()
             local payload = { jobName = latest.jobName, roleType = latest.roleType }
             local endpoint
             if actionId == 'boss:stash' then
-                local ok, err = QB.callback.trigger('qbbossmenu:server:openStash', latest.roleType)
+                local ok, err = Kora.callback.trigger('qbbossmenu:server:openStash', latest.roleType)
                 if not ok then return { notice = { tone = 'destructive', message = err or 'Could not open the stash.' } } end
                 return { notice = { tone = 'success', message = 'Boss stash opened.' } }
             elseif actionId == 'boss:accept' then endpoint = 'acceptApplicant'; payload.citizenid = itemId
@@ -170,9 +170,9 @@ local function appDefinition()
                 end
             else error('That management action is no longer available.') end
 
-            local ok, err = QB.callback.trigger('qbbossmenu:server:' .. endpoint, payload)
+            local ok, err = Kora.callback.trigger('qbbossmenu:server:' .. endpoint, payload)
             if not ok then return { notice = { tone = 'destructive', message = err or 'The management action was declined.' } } end
-            local refreshed, refreshErr = QB.callback.trigger('qbbossmenu:server:getJobData', latest.roleType)
+            local refreshed, refreshErr = Kora.callback.trigger('qbbossmenu:server:getJobData', latest.roleType)
             if not refreshed then return { notice = { tone = 'warning', message = refreshErr or 'Saved, but the view could not refresh.' } } end
             currentData = refreshed
             local updated = appDefinition()
@@ -188,15 +188,15 @@ local function openBossMenu(roleType)
 
     CreateThread(function()
         local ok, err = pcall(function()
-            local data, loadError = QB.callback.trigger('qbbossmenu:server:getJobData', roleType)
+            local data, loadError = Kora.callback.trigger('qbbossmenu:server:getJobData', roleType)
             if not data then
                 notify(loadError or 'You cannot open this boss menu.', 'error')
                 return
             end
 
             currentData = data
-            QB.nui.registerApp(appDefinition())
-            QB.nui.openApp(APP_ID)
+            Kora.nui.registerApp(appDefinition())
+            Kora.nui.openApp(APP_ID)
         end)
 
         currentData = nil
@@ -210,11 +210,11 @@ local function openBossMenu(roleType)
 end
 
 RegisterNetEvent('qb-bossmenu:client:OpenMenu', function()
-    if QB.callback.trigger('qbbossmenu:server:isJobBoss') then openBossMenu() end
+    if Kora.callback.trigger('qbbossmenu:server:isJobBoss') then openBossMenu() end
 end)
 
 RegisterNetEvent('qb-gangmenu:client:OpenMenu', function()
-    if QB.callback.trigger('qbbossmenu:server:isGangBoss') then openBossMenu('gang') end
+    if Kora.callback.trigger('qbbossmenu:server:isGangBoss') then openBossMenu('gang') end
 end)
 
 exports('openBossMenu', openBossMenu)
@@ -238,7 +238,7 @@ local function initLocations(data, Type)
                             canInteract = function()
                                 local role = exports.kora_core:getPlayerData({ roleType })
                                 if not role or role.name == (roleType == 'gang' and 'none' or 'unemployed') then return false end
-                                local definition = QB.shared.get(roleType == 'gang' and 'gangs' or 'jobs', role.name)
+                                local definition = Kora.shared.get(roleType == 'gang' and 'gangs' or 'jobs', role.name)
                                 local grade = definition and definition.grades and definition.grades[role.grade and role.grade.level]
                                 return grade and grade.isboss == true or false
                             end

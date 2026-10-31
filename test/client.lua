@@ -76,7 +76,7 @@ local function responseFor(name)
     return table.pack(true)
 end
 
-_G.QB = {
+_G.Kora = {
     shared = { get = function(name, key) return roles[name] and roles[name][key] end },
     nui = {
         registerApp = function(definition)

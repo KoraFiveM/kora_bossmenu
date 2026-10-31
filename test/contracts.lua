@@ -35,15 +35,15 @@ end
 -- kora_bossmenu owns its AppShell session state locally. This keeps opening the
 -- menu independent of kora_lib's generated export lookup and catches the exact
 -- broken call that previously reached production.
-check(not client:find('QB.nui.isAppOpen', 1, true),
+check(not client:find('Kora.nui.isAppOpen', 1, true),
     'boss menu does not call the removed cross-resource isAppOpen guard')
 
 check(not server:find('row.balance', 1, true), 'boss menu does not maintain a balance on its job row')
 check(client:find('data.accountBalance', 1, true), 'boss menu displays the qbbanking account balance on the employee page')
 check(client:find("RegisterNetEvent('qb-bossmenu:client:OpenMenu'", 1, true), 'legacy job event is registered')
 check(client:find("RegisterNetEvent('qb-gangmenu:client:OpenMenu'", 1, true), 'legacy gang event is registered')
-check(server:find("QB.callback.register('qbbossmenu:server:isJobBoss'", 1, true), 'job authorization callback is registered')
-check(server:find("QB.callback.register('qbbossmenu:server:isGangBoss'", 1, true), 'gang authorization callback is registered')
+check(server:find("Kora.callback.register('qbbossmenu:server:isJobBoss'", 1, true), 'job authorization callback is registered')
+check(server:find("Kora.callback.register('qbbossmenu:server:isGangBoss'", 1, true), 'gang authorization callback is registered')
 check(server:find('accountBalance = exports.kora_banking:GetAccountBalance(role.name)', 1, true),
     'authorized job data reads the current balance from qbbanking')
 check(server:find("JSON_UNQUOTE(JSON_EXTRACT(`gang`, '$.name'))", 1, true),
