@@ -33,8 +33,7 @@ for _, name in ipairs({ 'addBusinessMoney', 'removeBusinessMoney', 'getBusinessB
 end
 
 -- kora_bossmenu owns its AppShell session state locally. This keeps opening the
--- menu independent of kora_lib's generated export lookup and catches the exact
--- broken call that previously reached production.
+-- menu independent of kora_lib's generated export lookup.
 check(not client:find('Kora.nui.isAppOpen', 1, true),
     'boss menu does not call the removed cross-resource isAppOpen guard')
 
