@@ -299,7 +299,7 @@ Kora.callback.register('qbbossmenu:server:openStash', function(src, roleType)
     exports.kora_inventory:RegisterStash(id, (roleDefinition(roleType, role.name).label or role.name) .. ' Boss Stash', Config.stash.slots, Config.stash.maxWeight, false, { [role.name] = 1 })
     -- `stashOpen`, not `openInventory`: kora_inventory's server realm exports
     -- `OpenInventory`/`stashOpen`, and the lowercase `openInventory` is a
-    -- CLIENT-realm export, so this call was resolving to nothing at all.
+    -- CLIENT-realm export.
     return exports.kora_inventory:stashOpen(src, id)
 end)
 
