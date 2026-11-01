@@ -38,11 +38,12 @@ local function ensureRole(roleType, roleName)
     local row, err = Kora.sql.single('SELECT * FROM `qbbossmenu_jobs` WHERE `job` = ?', { key })
     if err then return nil, 'Could not load boss-menu data.' end
     if not row then
+        local questions = json.encode(Config.defaultQuestions[roleType])
         local inserted, insertErr = Kora.sql.insert('INSERT INTO `qbbossmenu_jobs` (`job`,`questions`,`applicants`,`logs`) VALUES (?, ?, ?, ?)', {
-            key, json.encode(Config.defaultQuestions[roleType]), '[]', '[]',
+            key, questions, '[]', '[]',
         })
         if not inserted then return nil, insertErr or 'Could not create job data.' end
-        row = { job = key, questions = json.encode(Config.defaultQuestions[roleType]), applicants = '[]', logs = '[]' }
+        row = { job = key, questions = questions, applicants = '[]', logs = '[]' }
     end
     row.roleType, row.roleName = roleType, roleName
     row.questions = decode(row.questions, {})
