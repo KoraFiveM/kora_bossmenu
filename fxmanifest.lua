@@ -5,6 +5,8 @@ lua54 'yes'
 name 'kora_bossmenu'
 -- Keep the legacy resource name resolvable for exports['qbbossmenu'] callers.
 provide 'qbbossmenu'
+-- Legacy qb-management exports (AddMoney, GetAccount, Add/RemoveBossMenuItem, ...).
+provide 'qb-management'
 author 'qbcore2'
 version '2.0.0'
 description 'Job management, applications, employee roster, stash and bonuses for qbcore'

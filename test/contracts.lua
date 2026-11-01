@@ -58,4 +58,13 @@ check(not schema:find('`balance`', 1, true), 'new installs do not create a boss-
 check(server:find("acceptedChecksums = { 'a3aa4c49' }", 1, true),
     'the two existing servers accept the reviewed pre-removal migration checksum')
 
+local manifest = read('fxmanifest.lua')
+check(manifest:find("provide 'qb-management'", 1, true), 'manifest provides qb-management')
+for _, name in ipairs({ 'AddMoney', 'RemoveMoney', 'AddGangMoney', 'RemoveGangMoney', 'GetAccount', 'GetGangAccount' }) do
+    check(server:find(("exports('%s'"):format(name), 1, true), 'qb-management server export ' .. name)
+end
+for _, name in ipairs({ 'AddBossMenuItem', 'RemoveBossMenuItem', 'AddGangMenuItem', 'RemoveGangMenuItem' }) do
+    check(client:find(("exports('%s'"):format(name), 1, true), 'qb-management client export ' .. name)
+end
+
 print(('qbbossmenu contracts: %d assertions passed'):format(assertions))

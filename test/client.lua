@@ -357,4 +357,56 @@ check(not manifest:find('@kora_theme/client/bridge.lua', 1, true), 'obsolete pri
 check(not manifest:find("dependency 'kora_theme'", 1, true), 'obsolete direct qbtheme dependency is removed')
 check(manifest:find("client_script 'client/main.lua'", 1, true), 'AppShell client remains in the manifest')
 
+local triggered = {}
+_G.TriggerEvent = function(name, ...) triggered[#triggered + 1] = table.pack(name, ...) end
+for _, name in ipairs({ 'AddBossMenuItem', 'RemoveBossMenuItem', 'AddGangMenuItem', 'RemoveGangMenuItem' }) do
+    check(registeredExports[name], name .. ' legacy menu export is registered')
+end
+local function extraIds(definition)
+    local ids = {}
+    for _, candidate in ipairs(view(definition, 'overview').content.actions) do
+        if candidate.id:find('^boss:extra:') then ids[#ids + 1] = candidate.id end
+    end
+    return ids
+end
+playerData = { job = { name = 'police', grade = { level = 2 } }, gang = { name = 'ballas', grade = { level = 2 } } }
+menuData, menuError = copyMenu(), nil
+local source = { header = 'Evidence', params = { event = 'ext:open', args = { room = 1 } } }
+local first = registeredExports.AddBossMenuItem(source)
+equal(first, 1, 'first boss item takes the next numeric id')
+source.params.args.room = 99
+registeredExports.AddBossMenuItem({ header = 'Named', params = { event = 'ext:named' } }, 'named')
+registeredExports.AddBossMenuItem({ header = 'Server', params = { isServer = true, event = 'ext:server' } }, 'srv')
+registeredExports.AddBossMenuItem({ header = 'Header', isMenuHeader = true, params = { event = 'ext:hdr' } }, 'hdr')
+registeredExports.AddBossMenuItem({ header = 'Bad', params = {} }, 'bad')
+registeredExports.AddGangMenuItem({ header = 'Gang only', params = { event = 'ext:gang' } }, 'g')
+local function openJob(roleType)
+    appDefinitions = {}
+    if roleType == 'gang' then events['qb-gangmenu:client:OpenMenu']() else events['qb-bossmenu:client:OpenMenu']() end
+    return appDefinitions['qbbossmenu:management']
+end
+local jobApp = openJob()
+local ids = extraIds(jobApp)
+equal(table.concat(ids, ','), 'boss:extra:1,boss:extra:named', 'only client-event boss items render, ordered')
+jobApp.onAction('boss:extra:1', {})
+equal(triggered[1][1], 'ext:open', 'extra item fires its client event')
+equal(triggered[1][2].room, 1, 'extra item args are the copy stored at registration')
+jobApp.onAction('boss:extra:named', {})
+equal(triggered[2][1], 'ext:named', 'string ids dispatch')
+local callsBefore = #serverCalls
+for _, id in ipairs({ 'boss:extra:srv', 'boss:extra:hdr', 'boss:extra:g', 'boss:extra:missing' }) do
+    check(not pcall(jobApp.onAction, id, {}), id .. ' is refused')
+end
+equal(#triggered, 2, 'refused extras fire nothing')
+equal(#serverCalls, callsBefore, 'extras never reach a server callback')
+menuData = copyMenu({ roleType = 'gang' })
+local gangApp = openJob('gang')
+equal(table.concat(extraIds(gangApp), ','), 'boss:extra:g', 'gang menu shows gang items only')
+registeredExports.RemoveBossMenuItem(1)
+registeredExports.RemoveGangMenuItem('g')
+menuData = copyMenu()
+equal(table.concat(extraIds(openJob()), ','), 'boss:extra:named', 'RemoveBossMenuItem hides the item')
+menuData = copyMenu({ roleType = 'gang' })
+equal(#extraIds(openJob('gang')), 0, 'RemoveGangMenuItem hides the item')
+
 print(('qbbossmenu client: %d assertions passed'):format(assertions))
