@@ -2,6 +2,63 @@ local APP_ID = 'qbbossmenu:management'
 local currentData
 local appActive = false
 
+local extraItems = { job = {}, gang = {} }
+local EXTRA_PREFIX = 'boss:extra:'
+
+local function copyValue(value)
+    if type(value) ~= 'table' then return value end
+    local copy = {}
+    for key, entry in pairs(value) do copy[key] = copyValue(entry) end
+    return copy
+end
+
+local function addExtraItem(roleType, data, id)
+    local items = extraItems[roleType]
+    local key = id or (#items + 1)
+    items[key] = copyValue(data)
+    return key
+end
+
+local function sortedExtraItems(roleType)
+    local keys = {}
+    for key, entry in pairs(extraItems[roleType]) do
+        local params = type(entry) == 'table' and entry.params
+        if type(params) == 'table' and type(params.event) == 'string' and not params.isServer
+            and not params.isCommand and not entry.isMenuHeader then
+            keys[#keys + 1] = key
+        end
+    end
+    table.sort(keys, function(a, b)
+        if type(a) == type(b) then return a < b end
+        return type(a) == 'number'
+    end)
+    return keys
+end
+
+local function extraActions(roleType)
+    local actions = {}
+    for _, key in ipairs(sortedExtraItems(roleType)) do
+        local entry = extraItems[roleType][key]
+        actions[#actions + 1] = {
+            id = EXTRA_PREFIX .. tostring(key), label = tostring(entry.header or entry.params.event),
+            icon = 'puzzle', closeBeforeAction = true,
+        }
+    end
+    return actions
+end
+
+local function runExtraAction(roleType, actionId)
+    local wanted = actionId:sub(#EXTRA_PREFIX + 1)
+    for _, key in ipairs(sortedExtraItems(roleType)) do
+        if tostring(key) == wanted then
+            local params = extraItems[roleType][key].params
+            TriggerEvent(params.event, params.args)
+            return true
+        end
+    end
+    return false
+end
+
 local function notify(message, type_)
     Kora.notify.send({ title = 'Boss Menu', message = message, type = type_ or 'info' })
 end
@@ -102,13 +159,17 @@ local function appDefinition()
         }
     end
 
+    local roleKey = data.roleType == 'gang' and 'gang' or 'job'
+    local overviewActions = { { id = 'boss:stash', label = 'Open boss stash', icon = 'package-open', variant = 'primary', closeBeforeAction = true } }
+    for _, extra in ipairs(extraActions(roleKey)) do overviewActions[#overviewActions + 1] = extra end
+
     return {
         id = APP_ID, title = 'Management', description = data.jobLabel or data.jobName or 'Boss menu', icon = 'briefcase-business',
         width = 1180, height = 780,
         navigation = {
             { id = 'overview', label = 'Overview', icon = 'layout-dashboard', content = {
                 title = 'Business overview', description = 'Live staffing and recruitment summary.',
-                actions = { { id = 'boss:stash', label = 'Open boss stash', icon = 'package-open', variant = 'primary', closeBeforeAction = true } },
+                actions = overviewActions,
                 blocks = { { type = 'stats', items = {
                     { label = 'Employees', value = #(data.employees or {}), icon = 'users' },
                     { label = 'Applicants', value = #(data.applicants or {}), icon = 'user-plus', tone = #applicants > 0 and 'warning' or 'neutral' },
@@ -151,6 +212,11 @@ local function appDefinition()
                 local ok, err = Kora.callback.trigger('qbbossmenu:server:openStash', latest.roleType)
                 if not ok then return { notice = { tone = 'destructive', message = err or 'Could not open the stash.' } } end
                 return { notice = { tone = 'success', message = 'Boss stash opened.' } }
+            elseif actionId:sub(1, #EXTRA_PREFIX) == EXTRA_PREFIX then
+                if not runExtraAction(latest.roleType == 'gang' and 'gang' or 'job', actionId) then
+                    error('That management action is no longer available.')
+                end
+                return
             elseif actionId == 'boss:accept' then endpoint = 'acceptApplicant'; payload.citizenid = itemId
             elseif actionId == 'boss:deny' then endpoint = 'denyApplicant'; payload.citizenid = itemId
             elseif actionId == 'boss:rank' then endpoint = 'setRank'; payload.citizenid = itemId; payload.grade = values.grade
@@ -219,6 +285,10 @@ end)
 
 exports('openBossMenu', openBossMenu)
 exports('openApplication', openApplication)
+exports('AddBossMenuItem', function(data, id) return addExtraItem('job', data, id) end)
+exports('RemoveBossMenuItem', function(id) extraItems.job[id] = nil end)
+exports('AddGangMenuItem', function(data, id) return addExtraItem('gang', data, id) end)
+exports('RemoveGangMenuItem', function(id) extraItems.gang[id] = nil end)
 
 local function initLocations(data, Type)
     local roleType = Type == 'gang' and 'gang' or 'job'

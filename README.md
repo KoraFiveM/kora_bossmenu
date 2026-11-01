@@ -19,6 +19,17 @@ The legacy `addBusinessMoney`,
 `removeBusinessMoney`, and `getBusinessBalance` exports remain as delegates to
 kora_banking for existing business resources.
 
+The resource also `provide`s `qb-management` for legacy callers. Server-only
+exports `AddMoney`, `RemoveMoney`, `AddGangMoney`, `RemoveGangMoney` (return a
+boolean) and `GetAccount`, `GetGangAccount` (return a number, `0` if unknown)
+delegate to kora_banking for real job/gang names and are logged to the activity
+trail. Client exports `AddBossMenuItem`, `RemoveBossMenuItem`, `AddGangMenuItem`
+and `RemoveGangMenuItem` add extra actions to the overview page of the boss/gang
+menu (only shown to the boss who already passed the server check). An action only
+runs the client-local `TriggerEvent(item.params.event, item.params.args)`; items
+with `isServer`/`isCommand`, headers, or no event are ignored, so nothing gains
+server authority.
+
 The management console uses kora_lib's AppShell for its overview, applicant
 answers, employee cards, shared action forms, question management, and activity
 timeline. kora_bossmenu still owns all data, permission checks, and mutations. The

@@ -330,29 +330,40 @@ Kora.callback.register('qbbossmenu:server:giveBonus', function(src, data)
     return true
 end, { rateLimit = { max = 5, window = 10000 } })
 
-exports('addBusinessMoney', function(jobName, amount, reason)
-    if not ready or not roleDefinition('job', jobName) then return false, 'unknown job' end
+local function credit(roleType, name, amount, reason)
+    if not ready or not roleDefinition(roleType, name) then return false, 'unknown job' end
     amount = math.floor(tonumber(amount) or 0)
     if amount <= 0 then return false, 'amount must be positive' end
-    local row, err = ensureRole('job', jobName)
+    local row, err = ensureRole(roleType, name)
     if not row then return false, err end
-    if not exports.kora_banking:AddMoney(jobName, amount, reason or 'boss-menu-business-credit') then return false, 'could not credit society' end
+    if not exports.kora_banking:AddMoney(name, amount, reason or 'boss-menu-business-credit') then return false, 'could not credit society' end
     addLog(row, ('Business received $%d%s.'):format(amount, reason and (' (' .. tostring(reason):sub(1, 100) .. ')') or ''))
     return true
-end)
+end
 
-exports('removeBusinessMoney', function(jobName, amount, reason)
-    if not ready or not roleDefinition('job', jobName) then return false, 'unknown job' end
+local function debit(roleType, name, amount, reason)
+    if not ready or not roleDefinition(roleType, name) then return false, 'unknown job' end
     amount = math.floor(tonumber(amount) or 0)
     if amount <= 0 then return false, 'amount must be positive' end
-    local row, err = ensureRole('job', jobName)
+    local row, err = ensureRole(roleType, name)
     if not row then return false, err end
-    if not exports.kora_banking:RemoveMoney(jobName, amount, reason or 'boss-menu-business-debit') then return false, 'insufficient business funds' end
+    if not exports.kora_banking:RemoveMoney(name, amount, reason or 'boss-menu-business-debit') then return false, 'insufficient business funds' end
     addLog(row, ('Business paid out $%d%s.'):format(amount, reason and (' (' .. tostring(reason):sub(1, 100) .. ')') or ''))
     return true
-end)
+end
 
-exports('getBusinessBalance', function(jobName)
-    if not ready or not roleDefinition('job', jobName) then return nil, 'unknown job' end
-    return exports.kora_banking:GetAccountBalance(jobName)
-end)
+local function balance(roleType, name)
+    if not roleDefinition(roleType, name) then return nil, 'unknown job' end
+    return exports.kora_banking:GetAccountBalance(name)
+end
+
+exports('addBusinessMoney', function(jobName, amount, reason) return credit('job', jobName, amount, reason) end)
+exports('removeBusinessMoney', function(jobName, amount, reason) return debit('job', jobName, amount, reason) end)
+exports('getBusinessBalance', function(jobName) return balance('job', jobName) end)
+
+exports('AddMoney', function(name, amount) return (credit('job', name, amount, 'qb-management')) end)
+exports('RemoveMoney', function(name, amount) return (debit('job', name, amount, 'qb-management')) end)
+exports('AddGangMoney', function(name, amount) return (credit('gang', name, amount, 'qb-management')) end)
+exports('RemoveGangMoney', function(name, amount) return (debit('gang', name, amount, 'qb-management')) end)
+exports('GetAccount', function(name) return tonumber((balance('job', name))) or 0 end)
+exports('GetGangAccount', function(name) return tonumber((balance('gang', name))) or 0 end)
