@@ -6,5 +6,5 @@ export default defineConfig({
   plugins: [qbtheme(), react()],
   base: "./",
   build: { outDir: "build", emptyOutDir: true },
-  test: { environment: "jsdom", globals: true, setupFiles: "./src/test/setup.ts" },
+  test: { environment: "jsdom", globals: true, setupFiles: "./src/test/setup.ts", css: { include: [/styles\.css/] } },
 })
