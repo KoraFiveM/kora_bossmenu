@@ -141,17 +141,13 @@ end
 CreateThread(function()
     local available = Kora.sql.ready(60000)
     if not available then return print('^1[qbbossmenu]^7 qbsql was not ready; resource disabled.') end
-    local _, err = Kora.sql.migrateFiles(RESOURCE, {
-        {
-            version = 1,
-            name = 'bossmenu',
-            file = 'sql/001_bossmenu.sql',
-            -- The two existing servers may have applied v1 before its obsolete
-            -- balance column was removed. Accept that exact reviewed checksum.
-            acceptedChecksums = { 'a3aa4c49' },
-        },
-    })
+    local reports, err = Kora.sql.ensureTables(QBBossmenuSchema)
     if err then return print(('^1[qbbossmenu]^7 migration failed: %s'):format(err)) end
+    for _, report in ipairs(reports or {}) do
+        for _, warning in ipairs(report.warnings or {}) do
+            print(('^3[qbbossmenu]^7 schema warning: %s'):format(tostring(warning)))
+        end
+    end
     local _, schemaErr = Kora.sql.execute('ALTER TABLE `qbbossmenu_jobs` DROP COLUMN IF EXISTS `balance`')
     if schemaErr then return print(('^1[qbbossmenu]^7 balance-column removal failed: %s'):format(schemaErr)) end
     ready = true

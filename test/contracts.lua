@@ -16,7 +16,7 @@ end
 local client = read('client/main.lua')
 local server = read('server/main.lua')
 local types = read('types.lua')
-local schema = read('sql/001_bossmenu.sql')
+local schema = read('server/schema.lua')
 
 for _, name in ipairs({ 'openBossMenu', 'openApplication' }) do
     check(client:find(("exports('%s'"):format(name), 1, true),
@@ -55,8 +55,9 @@ check(server:find("exports.kora_banking:RemoveMoney", 1, true), 'business debits
 check(server:find("exports.kora_banking:GetAccountBalance", 1, true), 'business balance reads delegate to qbbanking')
 check(server:find('DROP COLUMN IF EXISTS `balance`', 1, true), 'startup removes the obsolete balance column')
 check(not schema:find('`balance`', 1, true), 'new installs do not create a boss-menu balance column')
-check(server:find("acceptedChecksums = { 'a3aa4c49' }", 1, true),
-    'the two existing servers accept the reviewed pre-removal migration checksum')
+check(server:find('Kora.sql.ensureTables(QBBossmenuSchema)', 1, true), 'startup declares its tables through ensureTables')
+check(schema:find("name = 'qbbossmenu_jobs'", 1, true) and schema:find("'applicants'", 1, true),
+    'the schema declares qbbossmenu_jobs with its applicant and log columns')
 
 local manifest = read('fxmanifest.lua')
 check(manifest:find("provide 'qb-management'", 1, true), 'manifest provides qb-management')

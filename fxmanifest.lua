@@ -25,10 +25,9 @@ shared_scripts {
     'shared.lua',
 }
 
-server_scripts { 'server/main.lua' }
+server_scripts { 'server/schema.lua', 'server/main.lua' }
 client_script 'client/main.lua'
 
 files {
-    'sql/001_bossmenu.sql',
     'types.lua',
 }
