@@ -53,7 +53,7 @@ check(server:find('jobLabel = definition.label or jobName', 1, true),
 check(server:find("exports.kora_banking:AddMoney", 1, true), 'business credits delegate to qbbanking')
 check(server:find("exports.kora_banking:RemoveMoney", 1, true), 'business debits delegate to qbbanking')
 check(server:find("exports.kora_banking:GetAccountBalance", 1, true), 'business balance reads delegate to qbbanking')
-check(server:find('DROP COLUMN IF EXISTS `balance`', 1, true), 'startup removes the obsolete balance column')
+check(not server:find('DROP COLUMN', 1, true), 'startup runs no DROP COLUMN')
 check(not schema:find('`balance`', 1, true), 'new installs do not create a boss-menu balance column')
 check(server:find('Kora.sql.ensureTables(QBBossmenuSchema)', 1, true), 'startup declares its tables through ensureTables')
 check(schema:find("name = 'qbbossmenu_jobs'", 1, true) and schema:find("'applicants'", 1, true),
