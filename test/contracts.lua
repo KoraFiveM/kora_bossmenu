@@ -56,8 +56,8 @@ check(server:find("exports.kora_banking:GetAccountBalance", 1, true), 'business 
 check(not server:find('DROP COLUMN', 1, true), 'startup runs no DROP COLUMN')
 check(not schema:find('`balance`', 1, true), 'new installs do not create a boss-menu balance column')
 check(server:find('Kora.sql.ensureTables(QBBossmenuSchema)', 1, true), 'startup declares its tables through ensureTables')
-check(schema:find("name = 'qbbossmenu_jobs'", 1, true) and schema:find("'applicants'", 1, true),
-    'the schema declares qbbossmenu_jobs with its applicant and log columns')
+check(schema:find("name = 'kora_bossmenu_jobs'", 1, true) and schema:find("'applicants'", 1, true),
+    'the schema declares kora_bossmenu_jobs with its applicant and log columns')
 
 local manifest = read('fxmanifest.lua')
 check(manifest:find("provide 'qb-management'", 1, true), 'manifest provides qb-management')

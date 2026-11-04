@@ -1,6 +1,6 @@
 QBBossmenuSchema = {
     {
-        name = 'qbbossmenu_jobs',
+        name = 'kora_bossmenu_jobs',
         collate = 'utf8mb4_unicode_ci',
         columns = {
             { name = 'job', type = 'varchar(64)' },

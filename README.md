@@ -12,7 +12,7 @@ or legacy QBCore dependency.
 - `exports.kora_bossmenu:openBossMenu()` and `exports.kora_bossmenu:openApplication(job)`
   are available to attach the flows to another resource's interaction.
 
-The resource ensures `qbbossmenu_jobs` (declared in `server/schema.lua`) on start for applications and activity
+The resource ensures `kora_bossmenu_jobs` (declared in `server/schema.lua`) on start for applications and activity
 only. Boss-menu tables never had a balance column on new installs. Job
 society balances are owned by `kora_banking`; bonuses debit that account directly.
 The legacy `addBusinessMoney`,
