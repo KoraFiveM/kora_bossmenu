@@ -20,12 +20,11 @@ dependency 'kora_banking'
 
 shared_scripts {
     '@kora_lib/init.lua',
-    '@kora_sql/init.lua',
     '@kora_core/init.lua',
     'shared.lua',
 }
 
-server_scripts { 'server/schema.lua', 'server/main.lua' }
+server_scripts { '@kora_sql/init.lua', 'server/schema.lua', 'server/main.lua' }
 client_script 'client/main.lua'
 
 files {

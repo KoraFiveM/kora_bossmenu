@@ -195,6 +195,7 @@ end, { rateLimit = { max = 5, window = 10000 } })
 Kora.callback.register('qbbossmenu:server:submitApplication', function(src, jobName, answers, roleType)
     if not ready or type(answers) ~= 'table' then return false, 'Invalid application.' end
     roleType = roleType == 'gang' and 'gang' or 'job'
+    if not roleDefinition(roleType, jobName) then return false, 'Unknown organization.' end
     local row, err = ensureRole(roleType, jobName)
     if not row then return false, err end
     local player = exports.kora_core:getPlayerData(src)
@@ -261,7 +262,9 @@ Kora.callback.register('qbbossmenu:server:setRank', function(src, data)
     local row, err = managed(src, data); if not row then return false, err end
     local grade = math.floor(tonumber(data.grade) or 0)
     if not roleDefinition(row.roleType, row.roleName).grades[grade] or type(data.citizenid) ~= 'string' then return false, 'Invalid employee rank.' end
-    local actorGrade = actorRole(src, row.roleType).grade.level
+    local actorRow = actorRole(src, row.roleType)
+    local actorGrade = actorRow and actorRow.grade and actorRow.grade.level
+    if not actorGrade then return false, 'Your role changed; reopen the boss menu.' end
     if grade >= actorGrade then return false, 'You cannot assign your rank or a higher rank.' end
     local roster = employeeRows(row.roleType, row.roleName) or {}
     for _, employee in ipairs(roster) do
@@ -275,7 +278,9 @@ end)
 Kora.callback.register('qbbossmenu:server:fireEmployee', function(src, data)
     local row, err = managed(src, data); if not row then return false, err end
     if type(data.employee) ~= 'string' then return false, 'Invalid employee.' end
-    local actorGrade = actorRole(src, row.roleType).grade.level
+    local actorRow = actorRole(src, row.roleType)
+    local actorGrade = actorRow and actorRow.grade and actorRow.grade.level
+    if not actorGrade then return false, 'Your role changed; reopen the boss menu.' end
     for _, employee in ipairs(employeeRows(row.roleType, row.roleName) or {}) do
         if employee.citizenid == data.employee and employee.level >= actorGrade then return false, 'You cannot manage an equal or higher-ranked employee.' end
     end
