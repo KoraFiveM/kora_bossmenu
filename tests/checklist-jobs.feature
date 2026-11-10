@@ -9,7 +9,7 @@ Feature: kora_bossmenu — Jobs
     """
     When I manually: make sure my job is one where I have a boss grade
     And I run the command "/openbossmenu"
-    Then the "qbbossmenu:management" app opens
+    Then the "kora_bossmenu:management" app opens
     And I confirm: the console shows Overview, Employees, Applicants and Questions sections
     When I manually: switch to a non-boss grade of a job and run /openbossmenu again
     Then I should see a notification containing "You cannot open this boss menu."
@@ -22,7 +22,7 @@ Feature: kora_bossmenu — Jobs
     """
     When I manually: make sure I am a gang boss of a gang
     And I run the command "/openbossmenu gang"
-    Then the "qbbossmenu:management" app opens
+    Then the "kora_bossmenu:management" app opens
     And I confirm: the gang roster shows member ranks and no pay
     When I manually: click Kick on a gang member
     Then I confirm: the member is removed from the gang roster
@@ -35,7 +35,7 @@ Feature: kora_bossmenu — Jobs
     Given my job is "police"
     And I am at 447.9, -973.4, 30.7
     When I manually: make sure my police grade is a boss grade, then use the target at the boss point
-    Then the "qbbossmenu:management" app opens
+    Then the "kora_bossmenu:management" app opens
     When I manually: set my gang to ballas at a boss grade, go to 322.2, -1005.7, 29.3 and use the target
     Then I confirm: the gang boss menu opens
 
@@ -45,7 +45,7 @@ Feature: kora_bossmenu — Jobs
     Checklist test: Employees tab: Set rank on an employee with a grade; job grade changes (online or offline).
     """
     When I manually: as a boss of a job, run /openbossmenu
-    Then the "qbbossmenu:management" app opens
+    Then the "kora_bossmenu:management" app opens
     When I manually: open the Employees tab, click Set rank on an employee with a grade, choose a new grade and confirm
     Then I confirm: the employee's job grade changes to the chosen grade
     When I manually: repeat Set rank on an offline employee
@@ -57,7 +57,7 @@ Feature: kora_bossmenu — Jobs
     Checklist test: Give bonus to an employee; debited from society account (kora_banking); insufficient funds refused.
     """
     When I manually: as a boss of a job, run /openbossmenu
-    Then the "qbbossmenu:management" app opens
+    Then the "kora_bossmenu:management" app opens
     When I manually: open the Employees tab and give a bonus to an employee
     Then I confirm: the bonus amount is debited from the society account in kora_banking
     When I manually: give a bonus larger than the society account balance
@@ -69,7 +69,7 @@ Feature: kora_bossmenu — Jobs
     Checklist test: Fire an employee; they lose the job and confirmation applies.
     """
     When I manually: as a boss of a job, run /openbossmenu
-    Then the "qbbossmenu:management" app opens
+    Then the "kora_bossmenu:management" app opens
     When I manually: open the Employees tab, click Fire on an employee and confirm
     Then I confirm: the fired employee loses the job
     And I confirm: the confirmation is applied and shown
@@ -80,7 +80,7 @@ Feature: kora_bossmenu — Jobs
     Checklist test: Click Open boss stash: console closes and 80-slot stash opens.
     """
     When I manually: as a boss of a job, run /openbossmenu
-    Then the "qbbossmenu:management" app opens
+    Then the "kora_bossmenu:management" app opens
     When I manually: click Open boss stash
     Then I should see a notification containing "Boss stash opened."
     And the "stash" inventory opens
@@ -103,7 +103,7 @@ Feature: kora_bossmenu — Jobs
     Checklist test: Applicants tab: read answers, Hire or Deny; hired player gets the job.
     """
     When I manually: as a boss of a job, run /openbossmenu
-    Then the "qbbossmenu:management" app opens
+    Then the "kora_bossmenu:management" app opens
     When I manually: open the Applicants tab and read an applicant's answers
     Then I confirm: the applicant's answers are shown
     When I manually: click Hire on an applicant
@@ -117,7 +117,7 @@ Feature: kora_bossmenu — Jobs
     Checklist test: Questions tab: add, edit (short/long/number/yes-no) and remove questions, up to 20.
     """
     When I manually: as a boss of a job, run /openbossmenu
-    Then the "qbbossmenu:management" app opens
+    Then the "kora_bossmenu:management" app opens
     When I manually: open the Questions tab and add a question
     Then I confirm: the new question appears in the list
     When I manually: edit questions using each type: short, long, number and yes-no
@@ -133,7 +133,7 @@ Feature: kora_bossmenu — Jobs
     Checklist test: Overview shows recent boss actions (last 100 logs).
     """
     When I manually: as a boss of a job, run /openbossmenu
-    Then the "qbbossmenu:management" app opens
+    Then the "kora_bossmenu:management" app opens
     And I confirm: the Overview shows the recent boss actions timeline, up to the last 100 logs
 
   @kora_bossmenu @checklist @checklist:kora_bossmenu:business-balance @cat:jobs
@@ -142,5 +142,5 @@ Feature: kora_bossmenu — Jobs
     Checklist test: Overview shows the society balance, owned by kora_banking.
     """
     When I manually: as a boss of a job, run /openbossmenu
-    Then the "qbbossmenu:management" app opens
+    Then the "kora_bossmenu:management" app opens
     And I confirm: the Overview shows the society balance matching the kora_banking society account

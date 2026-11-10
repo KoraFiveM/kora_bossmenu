@@ -75,4 +75,4 @@ equal(accounts.ballas, 200, 'gang balance round-trips')
 equal(registered.AddGangMoney('police', 10), false, 'gang export does not touch a job account')
 equal(select('#', registered.AddMoney('police', 1)), 1, 'legacy exports return a single value')
 
-print(('qbbossmenu server: %d assertions passed'):format(assertions))
+print(('kora_bossmenu server: %d assertions passed'):format(assertions))

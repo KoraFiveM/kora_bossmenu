@@ -140,12 +140,12 @@ end
 
 CreateThread(function()
     local available = Kora.sql.ready(60000)
-    if not available then return print('^1[qbbossmenu]^7 qbsql was not ready; resource disabled.') end
-    local reports, err = Kora.sql.ensureTables(QBBossmenuSchema)
-    if err then return print(('^1[qbbossmenu]^7 schema setup failed: %s'):format(err)) end
+    if not available then return print('^1[kora_bossmenu]^7 kora_sql was not ready; resource disabled.') end
+    local reports, err = Kora.sql.ensureTables(KoraBossmenuSchema)
+    if err then return print(('^1[kora_bossmenu]^7 schema setup failed: %s'):format(err)) end
     for _, report in ipairs(reports or {}) do
         for _, warning in ipairs(report.warnings or {}) do
-            print(('^3[qbbossmenu]^7 schema warning: %s'):format(tostring(warning)))
+            print(('^3[kora_bossmenu]^7 schema warning: %s'):format(tostring(warning)))
         end
     end
     ready = true
@@ -156,15 +156,15 @@ local function actorIsBoss(src, roleType)
     return ready and role and isBoss(src, roleType, role.name) or false
 end
 
-Kora.callback.register('qbbossmenu:server:isJobBoss', function(src)
+Kora.callback.register('kora_bossmenu:server:isJobBoss', function(src)
     return actorIsBoss(src, 'job')
 end)
 
-Kora.callback.register('qbbossmenu:server:isGangBoss', function(src)
+Kora.callback.register('kora_bossmenu:server:isGangBoss', function(src)
     return actorIsBoss(src, 'gang')
 end)
 
-Kora.callback.register('qbbossmenu:server:getJobData', function(src, requestedRoleType)
+Kora.callback.register('kora_bossmenu:server:getJobData', function(src, requestedRoleType)
     local roleType = requestedRoleType == 'gang' and 'gang' or 'job'
     local role = actorRole(src, roleType)
     if roleType == 'job' and (not role or not isBoss(src, roleType, role.name)) then roleType, role = 'gang', actorRole(src, 'gang') end
@@ -184,7 +184,7 @@ Kora.callback.register('qbbossmenu:server:getJobData', function(src, requestedRo
     }
 end)
 
-Kora.callback.register('qbbossmenu:server:getApplication', function(_, jobName, roleType)
+Kora.callback.register('kora_bossmenu:server:getApplication', function(_, jobName, roleType)
     roleType = roleType == 'gang' and 'gang' or 'job'
     local definition = roleDefinition(roleType, jobName)
     if not definition then return nil, 'Unknown organization.' end
@@ -192,7 +192,7 @@ Kora.callback.register('qbbossmenu:server:getApplication', function(_, jobName, 
     return row and { label = definition.label or jobName, questions = row.questions, roleType = roleType } or nil, err
 end, { rateLimit = { max = 5, window = 10000 } })
 
-Kora.callback.register('qbbossmenu:server:submitApplication', function(src, jobName, answers, roleType)
+Kora.callback.register('kora_bossmenu:server:submitApplication', function(src, jobName, answers, roleType)
     if not ready or type(answers) ~= 'table' then return false, 'Invalid application.' end
     roleType = roleType == 'gang' and 'gang' or 'job'
     if not roleDefinition(roleType, jobName) then return false, 'Unknown organization.' end
@@ -219,7 +219,7 @@ local function managed(src, data)
     return ensureRole(roleType, roleName)
 end
 
-Kora.callback.register('qbbossmenu:server:acceptApplicant', function(src, data)
+Kora.callback.register('kora_bossmenu:server:acceptApplicant', function(src, data)
     local row, err = managed(src, data); if not row then return false, err end
     local applicant
     for i, entry in ipairs(row.applicants) do if entry.citizenid == data.citizenid then applicant = entry; table.remove(row.applicants, i); break end end
@@ -230,13 +230,13 @@ Kora.callback.register('qbbossmenu:server:acceptApplicant', function(src, data)
     return true
 end)
 
-Kora.callback.register('qbbossmenu:server:denyApplicant', function(src, data)
+Kora.callback.register('kora_bossmenu:server:denyApplicant', function(src, data)
     local row, err = managed(src, data); if not row then return false, err end
     for i, entry in ipairs(row.applicants) do if entry.citizenid == data.citizenid then table.remove(row.applicants, i); save(row, 'applicants'); addLog(row, ('Application from %s was denied.'):format(entry.name)); return true end end
     return false, 'Application not found.'
 end)
 
-Kora.callback.register('qbbossmenu:server:addQuestion', function(src, data)
+Kora.callback.register('kora_bossmenu:server:addQuestion', function(src, data)
     local row, err = managed(src, data); if not row then return false, err end
     local question = data.new
     if #row.questions >= Config.maxQuestions or type(question) ~= 'table' or type(question.question) ~= 'string' or not ({ short = true, long = true, number = true, yesno = true })[question.type] then return false, 'Invalid question.' end
@@ -244,7 +244,7 @@ Kora.callback.register('qbbossmenu:server:addQuestion', function(src, data)
     return save(row, 'questions')
 end)
 
-Kora.callback.register('qbbossmenu:server:editQuestion', function(src, data)
+Kora.callback.register('kora_bossmenu:server:editQuestion', function(src, data)
     local row, err = managed(src, data); if not row then return false, err end
     local updated = data.updatedQuestion
     if type(updated) ~= 'table' or type(updated.question) ~= 'string' or not ({ short = true, long = true, number = true, yesno = true })[updated.type] then return false, 'Invalid question.' end
@@ -252,13 +252,13 @@ Kora.callback.register('qbbossmenu:server:editQuestion', function(src, data)
     return false, 'Question not found.'
 end)
 
-Kora.callback.register('qbbossmenu:server:removeQuestion', function(src, data)
+Kora.callback.register('kora_bossmenu:server:removeQuestion', function(src, data)
     local row, err = managed(src, data); if not row then return false, err end
     for i, question in ipairs(row.questions) do if question.question == data.question then table.remove(row.questions, i); return save(row, 'questions') end end
     return false, 'Question not found.'
 end)
 
-Kora.callback.register('qbbossmenu:server:setRank', function(src, data)
+Kora.callback.register('kora_bossmenu:server:setRank', function(src, data)
     local row, err = managed(src, data); if not row then return false, err end
     local grade = math.floor(tonumber(data.grade) or 0)
     if not roleDefinition(row.roleType, row.roleName).grades[grade] or type(data.citizenid) ~= 'string' then return false, 'Invalid employee rank.' end
@@ -275,7 +275,7 @@ Kora.callback.register('qbbossmenu:server:setRank', function(src, data)
     return true
 end)
 
-Kora.callback.register('qbbossmenu:server:fireEmployee', function(src, data)
+Kora.callback.register('kora_bossmenu:server:fireEmployee', function(src, data)
     local row, err = managed(src, data); if not row then return false, err end
     if type(data.employee) ~= 'string' then return false, 'Invalid employee.' end
     local actorRow = actorRole(src, row.roleType)
@@ -289,13 +289,13 @@ Kora.callback.register('qbbossmenu:server:fireEmployee', function(src, data)
     return true
 end)
 
-Kora.callback.register('qbbossmenu:server:openStash', function(src, roleType)
+Kora.callback.register('kora_bossmenu:server:openStash', function(src, roleType)
     roleType = roleType == 'gang' and 'gang' or 'job'
     local role = actorRole(src, roleType)
     if not role then return false, 'You are not a boss.' end
     local ok, err = requireBoss(src, roleType, role.name)
     if not ok then return false, err end
-    local id = ('qbbossmenu:%s:%s'):format(roleType, role.name)
+    local id = ('kora_bossmenu:%s:%s'):format(roleType, role.name)
     exports.kora_inventory:RegisterStash(id, (roleDefinition(roleType, role.name).label or role.name) .. ' Boss Stash', Config.stash.slots, Config.stash.maxWeight, false, { [role.name] = 1 })
     -- `stashOpen`, not `openInventory`: kora_inventory's server realm exports
     -- `OpenInventory`/`stashOpen`, and the lowercase `openInventory` is a
@@ -303,7 +303,7 @@ Kora.callback.register('qbbossmenu:server:openStash', function(src, roleType)
     return exports.kora_inventory:stashOpen(src, id)
 end)
 
-Kora.callback.register('qbbossmenu:server:giveBonus', function(src, data)
+Kora.callback.register('kora_bossmenu:server:giveBonus', function(src, data)
     local row, err = managed(src, data); if not row then return false, err end
     local amount = math.floor(tonumber(data.amount) or 0)
     if amount <= 0 or type(data.citizenid) ~= 'string' then return false, 'Invalid bonus amount.' end
@@ -321,7 +321,7 @@ Kora.callback.register('qbbossmenu:server:giveBonus', function(src, data)
     end
     if not paid then
         if not exports.kora_banking:AddMoney(row.roleName, amount, 'boss-menu-bonus-refund') then
-            print(('^1[qbbossmenu]^7 bonus credit failed and society refund failed for %s'):format(row.roleName))
+            print(('^1[kora_bossmenu]^7 bonus credit failed and society refund failed for %s'):format(row.roleName))
         end
         return false, payErr or 'Could not pay bonus.'
     end

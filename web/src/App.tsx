@@ -190,7 +190,7 @@ export function App() {
       setError("")
     }
     window.addEventListener("message", receive)
-    void postNui("qbbossmenu:ready")
+    void postNui("kora_bossmenu:ready")
     return () => window.removeEventListener("message", receive)
   }, [])
 

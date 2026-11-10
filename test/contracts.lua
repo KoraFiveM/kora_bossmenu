@@ -38,24 +38,24 @@ check(not client:find('Kora.nui.isAppOpen', 1, true),
     'boss menu does not call the removed cross-resource isAppOpen guard')
 
 check(not server:find('row.balance', 1, true), 'boss menu does not maintain a balance on its job row')
-check(client:find('data.accountBalance', 1, true), 'boss menu displays the qbbanking account balance on the employee page')
+check(client:find('data.accountBalance', 1, true), 'boss menu displays the kora_banking account balance on the employee page')
 check(client:find("RegisterNetEvent('qb-bossmenu:client:OpenMenu'", 1, true), 'legacy job event is registered')
 check(client:find("RegisterNetEvent('qb-gangmenu:client:OpenMenu'", 1, true), 'legacy gang event is registered')
-check(server:find("Kora.callback.register('qbbossmenu:server:isJobBoss'", 1, true), 'job authorization callback is registered')
-check(server:find("Kora.callback.register('qbbossmenu:server:isGangBoss'", 1, true), 'gang authorization callback is registered')
+check(server:find("Kora.callback.register('kora_bossmenu:server:isJobBoss'", 1, true), 'job authorization callback is registered')
+check(server:find("Kora.callback.register('kora_bossmenu:server:isGangBoss'", 1, true), 'gang authorization callback is registered')
 check(server:find('accountBalance = exports.kora_banking:GetAccountBalance(role.name)', 1, true),
-    'authorized job data reads the current balance from qbbanking')
+    'authorized job data reads the current balance from kora_banking')
 check(server:find("JSON_UNQUOTE(JSON_EXTRACT(`gang`, '$.name'))", 1, true),
     'gang rosters are read from the persisted players table')
-check(server:find('exports.kora_core:setGang', 1, true), 'online gang rank changes use qbcore')
+check(server:find('exports.kora_core:setGang', 1, true), 'online gang rank changes use kora_core')
 check(server:find('jobLabel = definition.label or jobName', 1, true),
     'employee labels come from the job definition, not the minimal roster row')
-check(server:find("exports.kora_banking:AddMoney", 1, true), 'business credits delegate to qbbanking')
-check(server:find("exports.kora_banking:RemoveMoney", 1, true), 'business debits delegate to qbbanking')
-check(server:find("exports.kora_banking:GetAccountBalance", 1, true), 'business balance reads delegate to qbbanking')
+check(server:find("exports.kora_banking:AddMoney", 1, true), 'business credits delegate to kora_banking')
+check(server:find("exports.kora_banking:RemoveMoney", 1, true), 'business debits delegate to kora_banking')
+check(server:find("exports.kora_banking:GetAccountBalance", 1, true), 'business balance reads delegate to kora_banking')
 check(not server:find('DROP COLUMN', 1, true), 'startup runs no DROP COLUMN')
 check(not schema:find('`balance`', 1, true), 'new installs do not create a boss-menu balance column')
-check(server:find('Kora.sql.ensureTables(QBBossmenuSchema)', 1, true), 'startup declares its tables through ensureTables')
+check(server:find('Kora.sql.ensureTables(KoraBossmenuSchema)', 1, true), 'startup declares its tables through ensureTables')
 check(schema:find("name = 'kora_bossmenu_jobs'", 1, true) and schema:find("'applicants'", 1, true),
     'the schema declares kora_bossmenu_jobs with its applicant and log columns')
 
@@ -68,4 +68,4 @@ for _, name in ipairs({ 'AddBossMenuItem', 'RemoveBossMenuItem', 'AddGangMenuIte
     check(client:find(("exports('%s'"):format(name), 1, true), 'qb-management client export ' .. name)
 end
 
-print(('qbbossmenu contracts: %d assertions passed'):format(assertions))
+print(('kora_bossmenu contracts: %d assertions passed'):format(assertions))

@@ -70,9 +70,9 @@ _G.exports = setmetatable({
 }, { __call = function(_, name, fn) registeredExports[name] = fn end })
 
 local function responseFor(name)
-    if name == 'qbbossmenu:server:getJobData' then return table.pack(menuData, menuError) end
-    if name == 'qbbossmenu:server:getApplication' then return table.pack(applicationData, applicationError) end
-    if name == 'qbbossmenu:server:isJobBoss' or name == 'qbbossmenu:server:isGangBoss' then return table.pack(legacyAllowed) end
+    if name == 'kora_bossmenu:server:getJobData' then return table.pack(menuData, menuError) end
+    if name == 'kora_bossmenu:server:getApplication' then return table.pack(applicationData, applicationError) end
+    if name == 'kora_bossmenu:server:isJobBoss' or name == 'kora_bossmenu:server:isGangBoss' then return table.pack(legacyAllowed) end
     return table.pack(true)
 end
 
@@ -135,7 +135,7 @@ end
 
 local function exercise(definition, actionId, context, endpoint)
     local result = definition.onAction(actionId, context or {})
-    local call = lastServerCall('qbbossmenu:server:' .. endpoint)
+    local call = lastServerCall('kora_bossmenu:server:' .. endpoint)
     check(call, actionId .. ' routes through its server callback')
     check(type(result.update) == 'table' and type(result.update.navigation) == 'table', actionId .. ' refreshes AppShell data')
     equal(result.notice.tone, 'success', actionId .. ' returns a success notice')
@@ -196,35 +196,35 @@ equal(#serverCalls, callsBeforeVisibility, 'live role changes never request serv
 local opensBeforeSelection = #openedApps
 menuData, menuError = nil, 'You are no longer a boss.'
 jobTarget.onSelect()
-equal(lastServerCall('qbbossmenu:server:getJobData').name, 'qbbossmenu:server:getJobData', 'selection still requests authorized server data')
+equal(lastServerCall('kora_bossmenu:server:getJobData').name, 'kora_bossmenu:server:getJobData', 'selection still requests authorized server data')
 equal(#openedApps, opensBeforeSelection, 'server denial prevents opening after a local visibility check')
 equal(notifications[#notifications].message, menuError, 'selection preserves the server denial reason')
 menuData, menuError = copyMenu(), nil
 jobTarget.onSelect()
 equal(#openedApps, opensBeforeSelection + 1, 'authorized job selection opens the menu')
 gangTarget.onSelect()
-equal(lastServerCall('qbbossmenu:server:getJobData').args[1], 'gang', 'gang selection requests gang authorization')
+equal(lastServerCall('kora_bossmenu:server:getJobData').args[1], 'gang', 'gang selection requests gang authorization')
 
 registeredExports.openBossMenu()
-local definition = appDefinitions['qbbossmenu:management']
+local definition = appDefinitions['kora_bossmenu:management']
 check(definition, 'boss menu registers an AppShell definition')
-equal(openedApps[#openedApps], 'qbbossmenu:management', 'boss menu opens the registered AppShell')
+equal(openedApps[#openedApps], 'kora_bossmenu:management', 'boss menu opens the registered AppShell')
 equal(definition.title, 'Management', 'AppShell title is retained')
 local openedBeforeLegacy = #openedApps
 events['qb-bossmenu:client:OpenMenu']()
 equal(#openedApps, openedBeforeLegacy + 1, 'authorized legacy job event uses the normal menu flow')
-check(lastServerCall('qbbossmenu:server:isJobBoss'), 'legacy job event uses server authorization')
+check(lastServerCall('kora_bossmenu:server:isJobBoss'), 'legacy job event uses server authorization')
 menuData = copyMenu({ roleType = 'gang', jobName = 'ballas', jobLabel = 'Ballas' })
 events['qb-gangmenu:client:OpenMenu']()
 equal(#openedApps, openedBeforeLegacy + 2, 'authorized legacy gang event uses the normal menu flow')
-equal(lastServerCall('qbbossmenu:server:getJobData').args[1], 'gang', 'legacy gang event opens the gang flow')
+equal(lastServerCall('kora_bossmenu:server:getJobData').args[1], 'gang', 'legacy gang event opens the gang flow')
 legacyAllowed = false
 events['qb-bossmenu:client:OpenMenu']()
 equal(#openedApps, openedBeforeLegacy + 2, 'denied legacy events do not open the menu')
 legacyAllowed = true
 menuData = copyMenu()
 registeredExports.openBossMenu()
-definition = appDefinitions['qbbossmenu:management']
+definition = appDefinitions['kora_bossmenu:management']
 equal(#definition.navigation, 5, 'all management workspaces are present')
 check(view(definition, 'overview'), 'overview workspace is present')
 check(view(definition, 'applicants'), 'applicant workspace is present')
@@ -263,7 +263,7 @@ equal(employee.metadata[2].value, '$100', 'employees display the flattened job p
 check(action(employee.actions, 'boss:rank').fields, 'rank uses an AppShell action form')
 local bonus = action(employee.actions, 'boss:bonus')
 check(bonus.fields, 'bonus uses an AppShell action form')
-equal(bonus.disabled, nil, 'bonus availability is decided by qbbanking on the server')
+equal(bonus.disabled, nil, 'bonus availability is decided by kora_banking on the server')
 equal(bonus.fields[1].max, nil, 'bonus form does not cache a business balance as its maximum')
 equal(bonus.fields[1].description, nil, 'bonus form does not display a business balance')
 check(action(employee.actions, 'boss:fire').confirm, 'firing uses AppShell confirmation')
@@ -273,7 +273,7 @@ menuData = copyMenu({
     employees = { { citizenid = 'MEM-1', name = 'Alex Member', jobName = 'ballas', jobLabel = 'Ballas', level = 1, gradeName = 'Associate', online = true } },
 })
 registeredExports.openBossMenu('gang')
-local gangDefinition = appDefinitions['qbbossmenu:management']
+local gangDefinition = appDefinitions['kora_bossmenu:management']
 local gangEmployees = view(gangDefinition, 'employees').content.blocks[2]
 local member = item(gangEmployees, 'MEM-1')
 equal(view(gangDefinition, 'employees').content.title, 'Gang roster', 'gangs use the management roster')
@@ -283,7 +283,7 @@ equal(action(member.actions, 'boss:fire').label, 'Kick', 'gang removal is presen
 
 menuData = copyMenu()
 registeredExports.openBossMenu()
-definition = appDefinitions['qbbossmenu:management']
+definition = appDefinitions['kora_bossmenu:management']
 
 local questions = view(definition, 'questions')
 check(action(questions.content.actions, 'boss:add-question').fields, 'question creation uses a header action form')
@@ -324,7 +324,7 @@ equal(addPayload.new.question, 'New question?', 'question creation forwards its 
 equal(addPayload.new.type, 'long', 'question creation forwards its answer type')
 
 local stashResult = definition.onAction('boss:stash', {})
-equal(lastServerCall('qbbossmenu:server:openStash').name, 'qbbossmenu:server:openStash', 'stash routes through the server')
+equal(lastServerCall('kora_bossmenu:server:openStash').name, 'kora_bossmenu:server:openStash', 'stash routes through the server')
 equal(stashResult.notice.tone, 'success', 'stash returns a shell-owned success notice')
 equal(directCloses, 0, 'stash relies on closeBeforeAction instead of closing directly')
 
@@ -341,7 +341,7 @@ equal(dialog.title, 'Apply: Police', 'application uses the shared input dialog')
 equal(#dialog.fields, 2, 'application creates one field per configured question')
 equal(dialog.fields[2].type, 'textarea', 'long application answers use a textarea')
 equal(dialog.fields[2].maxLength, 1000, 'long application answers retain the server limit')
-local submit = lastServerCall('qbbossmenu:server:submitApplication')
+local submit = lastServerCall('kora_bossmenu:server:submitApplication')
 equal(submit.args[1], 'police', 'application submission includes the job')
 equal(submit.args[2]['1'], 'An answer', 'application submission forwards dialog values')
 
@@ -354,7 +354,7 @@ local manifest = manifestFile:read('*a')
 manifestFile:close()
 check(not manifest:find('ui_page', 1, true), 'private browser page is no longer loaded')
 check(not manifest:find('@kora_theme/client/bridge.lua', 1, true), 'obsolete private theme bridge is no longer loaded')
-check(not manifest:find("dependency 'kora_theme'", 1, true), 'obsolete direct qbtheme dependency is removed')
+check(not manifest:find("dependency 'kora_theme'", 1, true), 'obsolete direct kora_theme dependency is removed')
 check(manifest:find("client_script 'client/main.lua'", 1, true), 'AppShell client remains in the manifest')
 
 local triggered = {}
@@ -383,7 +383,7 @@ registeredExports.AddGangMenuItem({ header = 'Gang only', params = { event = 'ex
 local function openJob(roleType)
     appDefinitions = {}
     if roleType == 'gang' then events['qb-gangmenu:client:OpenMenu']() else events['qb-bossmenu:client:OpenMenu']() end
-    return appDefinitions['qbbossmenu:management']
+    return appDefinitions['kora_bossmenu:management']
 end
 local jobApp = openJob()
 local ids = extraIds(jobApp)
@@ -409,4 +409,4 @@ equal(table.concat(extraIds(openJob()), ','), 'boss:extra:named', 'RemoveBossMen
 menuData = copyMenu({ roleType = 'gang' })
 equal(#extraIds(openJob('gang')), 0, 'RemoveGangMenuItem hides the item')
 
-print(('qbbossmenu client: %d assertions passed'):format(assertions))
+print(('kora_bossmenu client: %d assertions passed'):format(assertions))

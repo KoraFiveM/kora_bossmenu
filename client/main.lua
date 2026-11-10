@@ -1,4 +1,4 @@
-local APP_ID = 'qbbossmenu:management'
+local APP_ID = 'kora_bossmenu:management'
 local currentData
 local appActive = false
 
@@ -78,11 +78,11 @@ local function applicationFields(questions)
 end
 
 local function openApplication(jobName, roleType)
-    local job, err = Kora.callback.trigger('qbbossmenu:server:getApplication', jobName, roleType)
+    local job, err = Kora.callback.trigger('kora_bossmenu:server:getApplication', jobName, roleType)
     if not job then return notify(err or 'That job is not accepting applications.', 'error') end
     local result = Kora.nui.openInputDialog(applicationFields(job.questions), ('Apply: %s'):format(job.label), 'Complete every question to submit your application.')
     if not result or result.cancelled then return end
-    local ok, submitErr = Kora.callback.trigger('qbbossmenu:server:submitApplication', jobName, result.values, roleType)
+    local ok, submitErr = Kora.callback.trigger('kora_bossmenu:server:submitApplication', jobName, result.values, roleType)
     notify(ok and 'Your application was submitted.' or (submitErr or 'Could not submit application.'), ok and 'success' or 'error')
 end
 
@@ -209,7 +209,7 @@ local function appDefinition()
             local payload = { jobName = latest.jobName, roleType = latest.roleType }
             local endpoint
             if actionId == 'boss:stash' then
-                local ok, err = Kora.callback.trigger('qbbossmenu:server:openStash', latest.roleType)
+                local ok, err = Kora.callback.trigger('kora_bossmenu:server:openStash', latest.roleType)
                 if not ok then return { notice = { tone = 'destructive', message = err or 'Could not open the stash.' } } end
                 return { notice = { tone = 'success', message = 'Boss stash opened.' } }
             elseif actionId:sub(1, #EXTRA_PREFIX) == EXTRA_PREFIX then
@@ -236,9 +236,9 @@ local function appDefinition()
                 end
             else error('That management action is no longer available.') end
 
-            local ok, err = Kora.callback.trigger('qbbossmenu:server:' .. endpoint, payload)
+            local ok, err = Kora.callback.trigger('kora_bossmenu:server:' .. endpoint, payload)
             if not ok then return { notice = { tone = 'destructive', message = err or 'The management action was declined.' } } end
-            local refreshed, refreshErr = Kora.callback.trigger('qbbossmenu:server:getJobData', latest.roleType)
+            local refreshed, refreshErr = Kora.callback.trigger('kora_bossmenu:server:getJobData', latest.roleType)
             if not refreshed then return { notice = { tone = 'warning', message = refreshErr or 'Saved, but the view could not refresh.' } } end
             currentData = refreshed
             local updated = appDefinition()
@@ -254,7 +254,7 @@ local function openBossMenu(roleType)
 
     CreateThread(function()
         local ok, err = pcall(function()
-            local data, loadError = Kora.callback.trigger('qbbossmenu:server:getJobData', roleType)
+            local data, loadError = Kora.callback.trigger('kora_bossmenu:server:getJobData', roleType)
             if not data then
                 notify(loadError or 'You cannot open this boss menu.', 'error')
                 return
@@ -269,18 +269,18 @@ local function openBossMenu(roleType)
         appActive = false
 
         if not ok then
-            print(('^1[qbbossmenu]^7 Could not open the management menu: %s'):format(tostring(err)))
+            print(('^1[kora_bossmenu]^7 Could not open the management menu: %s'):format(tostring(err)))
             notify('The management menu could not be opened.', 'error')
         end
     end)
 end
 
 RegisterNetEvent('qb-bossmenu:client:OpenMenu', function()
-    if Kora.callback.trigger('qbbossmenu:server:isJobBoss') then openBossMenu() end
+    if Kora.callback.trigger('kora_bossmenu:server:isJobBoss') then openBossMenu() end
 end)
 
 RegisterNetEvent('qb-gangmenu:client:OpenMenu', function()
-    if Kora.callback.trigger('qbbossmenu:server:isGangBoss') then openBossMenu('gang') end
+    if Kora.callback.trigger('kora_bossmenu:server:isGangBoss') then openBossMenu('gang') end
 end)
 
 exports('openBossMenu', openBossMenu)
