@@ -239,7 +239,8 @@ end)
 Kora.callback.register('kora_bossmenu:server:addQuestion', function(src, data)
     local row, err = managed(src, data); if not row then return false, err end
     local question = data.new
-    if #row.questions >= Config.maxQuestions or type(question) ~= 'table' or type(question.question) ~= 'string' or not ({ short = true, long = true, number = true, yesno = true })[question.type] then return false, 'Invalid question.' end
+    -- A blank question would add an empty, unanswerable field to every application.
+    if #row.questions >= Config.maxQuestions or type(question) ~= 'table' or type(question.question) ~= 'string' or not question.question:find('%S') or not ({ short = true, long = true, number = true, yesno = true })[question.type] then return false, 'Invalid question.' end
     row.questions[#row.questions + 1] = { question = question.question:sub(1, 250), type = question.type }
     return save(row, 'questions')
 end)
@@ -247,7 +248,7 @@ end)
 Kora.callback.register('kora_bossmenu:server:editQuestion', function(src, data)
     local row, err = managed(src, data); if not row then return false, err end
     local updated = data.updatedQuestion
-    if type(updated) ~= 'table' or type(updated.question) ~= 'string' or not ({ short = true, long = true, number = true, yesno = true })[updated.type] then return false, 'Invalid question.' end
+    if type(updated) ~= 'table' or type(updated.question) ~= 'string' or not updated.question:find('%S') or not ({ short = true, long = true, number = true, yesno = true })[updated.type] then return false, 'Invalid question.' end
     for i, question in ipairs(row.questions) do if question.question == data.originalQuestion then row.questions[i] = { question = updated.question:sub(1, 250), type = updated.type }; return save(row, 'questions') end end
     return false, 'Question not found.'
 end)
