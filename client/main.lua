@@ -290,6 +290,11 @@ exports('RemoveBossMenuItem', function(id) extraItems.job[id] = nil end)
 exports('AddGangMenuItem', function(data, id) return addExtraItem('gang', data, id) end)
 exports('RemoveGangMenuItem', function(id) extraItems.gang[id] = nil end)
 
+-- Config points are standing-player positions (about 1 m above the floor).
+-- kora_target matches the point the camera ray hits, so a 1 m cube there held
+-- no surface to aim at; 2.6 m tall reaches the floor under the point.
+local POINT_SIZE = vector3(1.0, 1.0, 2.6)
+
 local function initLocations(data, Type)
     local roleType = Type == 'gang' and 'gang' or 'job'
     for _, job in ipairs(data) do
@@ -297,7 +302,7 @@ local function initLocations(data, Type)
             for _, location in ipairs(job.bossmenu) do
                 exports.kora_target:addBoxZone({
                     coords = location,
-                    size = vector3(1, 1, 1),
+                    size = POINT_SIZE,
                     options = {
                         {
                             icon = "fas fa-briefcase",
@@ -322,7 +327,7 @@ local function initLocations(data, Type)
             for _, location in ipairs(job.apply) do
                 exports.kora_target:addBoxZone({
                     coords = location,
-                    size = vector3(1, 1, 1),
+                    size = POINT_SIZE,
                     options = {
                         {
                             icon = "fas fa-briefcase",
