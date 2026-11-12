@@ -1,0 +1,46 @@
+{
+  "resource": "kora_bossmenu",
+  "standardsRevision": "2026-11-12.1",
+  "realms": {
+    "client": [
+      "client/main.lua"
+    ],
+    "server": [
+      "server/main.lua",
+      "server/schema.lua"
+    ],
+    "shared": [
+      "shared.lua",
+      "types.lua"
+    ],
+    "manifest": [
+      "fxmanifest.lua"
+    ],
+    "test": [
+      "test/client.lua",
+      "test/contracts.lua",
+      "test/server.lua"
+    ]
+  },
+  "exclude": [
+    ".git/*",
+    ".github/*",
+    ".standards/*",
+    "node_modules/*",
+    "**/node_modules/*",
+    "vendor/*",
+    "**/vendor/*",
+    "web/*",
+    "ui/*",
+    "html/*",
+    "dist/*",
+    "artifacts/*",
+    "runtime/*",
+    "txData/*",
+    "storage/*",
+    "stream/*",
+    "docs/*",
+    "__pycache__/*",
+    "modules/lookup/data/*"
+  ]
+}
