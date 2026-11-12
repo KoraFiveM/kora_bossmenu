@@ -4,7 +4,7 @@ kora_bossmenu is the Kora job/gang management console (applications, roster, ran
 
 ## Documentation
 
-User-facing documentation lives in `docs/` (Markdown, published via the Kora Docusaurus site, kora_docs_next). Read `docs/index.md` first for an overview of features, configuration, commands, exports, events and database usage.
+User-facing documentation lives in `docs/` (Markdown, published via the Kora Docusaurus site, kora_docs_next). Read `docs/index.md` first (hub with a documentation map). Layout: `index.md` (overview and map), `installation.md`, `how-to-use.md`, `commands.md` (no commands exist), `management-menu.md`, `applications.md`, `compatibility.md`, `troubleshooting.md`, and `api/` (`server-exports.md`, `client-exports.md`, `events.md` incl. internal callbacks, `configuration.md` for `shared.lua`, `data.md` for `kora_bossmenu_jobs`). Update the page that matches the change.
 
 When you add, change, or remove a feature, config option, command, export, event, item, permission, or database table/column, update the matching page in `docs/` in the same change. Keep docs accurate to the code; do not document behaviour that does not exist.
 

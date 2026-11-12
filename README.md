@@ -1,14 +1,12 @@
 # kora_bossmenu
 
 Native boss menu for the qbcore2 stack. It uses `kora_lib`, `kora_sql`, `kora_core`,
-`kora_inventory`, and `kora_multijob`; it has no ox_lib, oxmysql, community bridge,
+`kora_inventory`, `kora_multijob` and `kora_banking` (and `kora_target` for the world points); it has no ox_lib, oxmysql, community bridge,
 or legacy QBCore dependency.
 
-- `/openbossmenu` opens the active job's boss menu for an `isboss` grade; use
-  `/openbossmenu gang` for the active gang. Gang rosters are read from the
-  persisted player records, have ranks but no pay, and use **Kick** to remove a
-  member.
-- `/jobapply <job>` opens a kora_lib input form generated from that job's questions.
+- The resource registers no chat commands. The boss menu opens at the configured kora_target points (visible to bosses of their active job or gang), through `exports.kora_bossmenu:openBossMenu(roleType?)`, or through the legacy `qb-bossmenu:client:OpenMenu` / `qb-gangmenu:client:OpenMenu` client events. Gang rosters are read from the
+  persisted player records, have ranks but no pay, and use **Kick** to remove a member.
+- Players apply at `apply` points (kora_target) or with `exports.kora_bossmenu:openApplication(job)`; the kora_lib input form is generated from that job's questions.
 - `exports.kora_bossmenu:openBossMenu()` and `exports.kora_bossmenu:openApplication(job)`
   are available to attach the flows to another resource's interaction.
 
@@ -39,3 +37,5 @@ The old `web/` source and build are retained temporarily for parity review, but
 they are no longer loaded by the resource manifest.
 
 Full documentation: see [docs/](docs/index.md).
+
+Documentation: see `docs/` (start at `docs/index.md`).

@@ -1,6 +1,6 @@
 ---
 title: Management menu
-sidebar_position: 3
+sidebar_position: 6
 ---
 
 # Management menu
@@ -11,9 +11,9 @@ The management console is a kora_lib AppShell app with the id `kora_bossmenu:man
 
 The menu can be opened by:
 
-- the **Open Boss Menu** kora_target option at a configured `bossmenu` point (see [Configuration](./configuration.md#menu-locations---configmenus)),
-- the client export `exports.kora_bossmenu:openBossMenu(roleType)` (see [Exports](./exports.md)),
-- the legacy client events `qb-bossmenu:client:OpenMenu` and `qb-gangmenu:client:OpenMenu` (see [Events](./events.md)).
+- the **Open Boss Menu** kora_target option at a configured `bossmenu` point (see [Configuration](./api/configuration.md#menu-entry-fields)),
+- the client export `exports.kora_bossmenu:openBossMenu(roleType)` (see [Client exports](./api/client-exports.md)),
+- the legacy client events `qb-bossmenu:client:OpenMenu` and `qb-gangmenu:client:OpenMenu` (see [Events](./api/events.md)).
 
 There is no chat command for opening the menu.
 
@@ -34,7 +34,7 @@ If the menu cannot be loaded the player sees one of these notifications: "Boss m
 
 - Stats: number of employees, pending applicants (highlighted when greater than 0) and application questions.
 - **Open boss stash** - see [Boss stash](#boss-stash).
-- Any extra actions registered by other resources with `AddBossMenuItem` (job menu) or `AddGangMenuItem` (gang menu). See [Exports](./exports.md#extra-overview-actions).
+- Any extra actions registered by other resources with `AddBossMenuItem` (job menu) or `AddGangMenuItem` (gang menu). See [Exports](./api/client-exports.md#extra-overview-actions---details).
 
 ### Applicants
 
@@ -100,7 +100,7 @@ Question text must not be blank and is cut to 250 characters; the type must be `
 
 ### Activity
 
-A timeline of the stored log entries, newest first. Entries are stored with a UTC ISO 8601 timestamp; only the last `Config.maxLogs` entries are kept. Besides the menu actions above, business credits and debits made through the [money exports](./exports.md#server-exports) are logged as `Business received $<amount> (<reason>).` and `Business paid out $<amount> (<reason>).`.
+A timeline of the stored log entries, newest first. Entries are stored with a UTC ISO 8601 timestamp; only the last `Config.maxLogs` entries are kept. Besides the menu actions above, business credits and debits made through the [money exports](./api/server-exports.md) are logged as `Business received $<amount> (<reason>).` and `Business paid out $<amount> (<reason>).`.
 
 ## Boss stash
 
