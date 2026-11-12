@@ -1,0 +1,10 @@
+import react from "@vitejs/plugin-react"
+import { defineConfig } from "vite"
+import kora_theme from "../../kora_theme/vite-plugin.mjs"
+
+export default defineConfig({
+  plugins: [kora_theme(), react()],
+  base: "./",
+  build: { outDir: "build", emptyOutDir: true },
+  test: { environment: "jsdom", globals: true, setupFiles: "./src/test/setup.ts", css: { include: [/styles\.css/] } },
+})
