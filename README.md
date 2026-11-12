@@ -37,3 +37,5 @@ stash action closes AppShell before handing focus to kora_inventory.
 
 The old `web/` source and build are retained temporarily for parity review, but
 they are no longer loaded by the resource manifest.
+
+Full documentation: see [docs/](docs/index.md).
