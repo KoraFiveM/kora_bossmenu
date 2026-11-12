@@ -18,10 +18,10 @@ sidebar_position: 1
 - **Boss stash** - a shared kora_inventory stash per job or gang.
 - **Activity log** - hires, denials, rank changes, firings, bonuses and business credits/debits are recorded per organization (capped by `Config.maxLogs`).
 - **World interaction points** - kora_target boxes for "Open Boss Menu" and "Apply for Job" at configured coordinates.
-- **Business money exports** - `addBusinessMoney`, `removeBusinessMoney`, `getBusinessBalance` and the legacy `qb-management` exports, all delegating to kora_banking. See [Exports](./exports.md).
+- **Business money exports** - `addBusinessMoney`, `removeBusinessMoney`, `getBusinessBalance` and the legacy `qb-management` exports, all delegating to kora_banking. See [Server exports](./api/server-exports.md).
 - **Extra menu actions** - other resources can add client-side actions to the overview page with `AddBossMenuItem` / `AddGangMenuItem`.
 
-The resource registers **no chat commands**. Menus are opened through the target points, the `openBossMenu` / `openApplication` client exports, or the legacy client events listed in [Events](./events.md).
+The resource registers **no chat commands**. Menus are opened through the target points, the `openBossMenu` / `openApplication` client exports, or the legacy client events listed in [Events](./api/events.md).
 
 ## Requirements
 
@@ -42,33 +42,18 @@ Also used but **not** declared as a manifest dependency:
 
 The resource `provide`s `qb-management`, so resources that depend on `qb-management` resolve to it. See [Compatibility](./compatibility.md).
 
-## Installation
+## Documentation map
 
-1. Place the resource in your resources folder.
-2. Make sure the dependencies start first, for example:
-
-   ```cfg
-   ensure kora_lib
-   ensure kora_sql
-   ensure kora_core
-   ensure kora_inventory
-   ensure kora_multijob
-   ensure kora_banking
-   ensure kora_target
-   ensure kora_bossmenu
-   ```
-
-3. No manual SQL import is needed. On start the server waits for kora_sql (up to 60 seconds) and creates the `kora_bossmenu_jobs` table through `Kora.sql.ensureTables`. See [Database](./database.md).
-4. No inventory items are required.
-5. Mark boss grades with `isboss = true` in your kora_core job and gang definitions, and adjust the boss/apply locations in `shared.lua`. See [Configuration](./configuration.md).
-
-## Pages
-
-- [Configuration](./configuration.md) - every option in `shared.lua`.
-- [Management menu](./management-menu.md) - the boss console, permissions and each action.
-- [Applications](./applications.md) - applying for a job or gang and the question types.
-- [Exports](./exports.md) - client and server exports.
-- [Events](./events.md) - legacy open events and internal callbacks.
-- [Database](./database.md) - `kora_bossmenu_jobs` and the tables it reads.
-- [Compatibility](./compatibility.md) - `qb-management` replacement surface.
-- [Troubleshooting](./troubleshooting.md) - common problems.
+- [Installation](./installation.md) - install steps, start order, manifest, startup behaviour and what surprises people.
+- [How to use](./how-to-use.md) - who counts as a boss, ways to open the menu, hiring, grades, society funds, bonuses, stash and architecture.
+- [Commands](./commands.md) - the resource registers no commands; how to open the menus instead.
+- [Management menu](./management-menu.md) - every page and action of the boss console, with permissions, messages and log entries.
+- [Applications](./applications.md) - applying for a job or gang, question types and submission rules.
+- [API reference](./api/index.md) - overview of all API modules.
+  - [Server exports](./api/server-exports.md) - business money exports and the `qb-management` surface.
+  - [Client exports](./api/client-exports.md) - `openBossMenu`, `openApplication` and the extra overview item exports.
+  - [Events](./api/events.md) - legacy open events and internal server callbacks.
+  - [Configuration](./api/configuration.md) - every option in `shared.lua`.
+  - [Data and storage](./api/data.md) - `kora_bossmenu_jobs` and the tables it reads.
+- [Compatibility](./compatibility.md) - `qb-management` replacement surface and the legacy `web/` UI.
+- [Troubleshooting](./troubleshooting.md) - common problems and fixes.

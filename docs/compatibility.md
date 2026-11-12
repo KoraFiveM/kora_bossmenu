@@ -18,7 +18,7 @@ The manifest declares `provide 'qb-management'`, so resources that list `qb-mana
 | `AddBossMenuItem`, `RemoveBossMenuItem`, `AddGangMenuItem`, `RemoveGangMenuItem` | client export | Add buttons to the Overview page. Only client-local events are supported; `isServer`, `isCommand`, header items and items without `params.event` are ignored. |
 | `qb-bossmenu:client:OpenMenu`, `qb-gangmenu:client:OpenMenu` | client event | Open the job / gang menu after a server boss check. |
 
-See [Exports](./exports.md) and [Events](./events.md) for details.
+See [Exports](./api/server-exports.md) and [Events](./api/events.md) for details.
 
 Differences from qb-management:
 

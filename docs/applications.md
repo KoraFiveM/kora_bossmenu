@@ -1,6 +1,6 @@
 ---
 title: Applications
-sidebar_position: 4
+sidebar_position: 7
 ---
 
 # Applications
@@ -9,8 +9,8 @@ Any player can apply to a job or gang that exists in the kora_core shared defini
 
 ## Opening the form
 
-- The **Apply for Job** kora_target option at a configured `apply` point (see [Configuration](./configuration.md#menu-locations---configmenus)). Points under `Config.Menus.gang` open a gang application.
-- The client export `exports.kora_bossmenu:openApplication(jobName)` (job applications only; see [Exports](./exports.md#openapplication)).
+- The **Apply for Job** kora_target option at a configured `apply` point (see [Configuration](./api/configuration.md#menu-entry-fields)). Points under `Config.Menus.gang` open a gang application.
+- The client export `exports.kora_bossmenu:openApplication(jobName)` (job applications only; see [Exports](./api/client-exports.md)).
 
 There is no chat command for applying.
 
@@ -42,4 +42,4 @@ On success the player is notified "Your application was submitted.". Pending app
 
 ## Questionnaire storage
 
-The first time an organization is used (form opened, menu opened, or money export called) a row is created in `kora_bossmenu_jobs` with a copy of `Config.defaultQuestions.job` or `Config.defaultQuestions.gang`. Bosses then manage the questionnaire from the [Questions page](./management-menu.md#questions). See [Database](./database.md).
+The first time an organization is used (form opened, menu opened, or money export called) a row is created in `kora_bossmenu_jobs` with a copy of `Config.defaultQuestions.job` or `Config.defaultQuestions.gang`. Bosses then manage the questionnaire from the [Questions page](./management-menu.md#questions). See [Database](./api/data.md).
