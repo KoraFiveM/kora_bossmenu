@@ -6,7 +6,7 @@ name 'kora_bossmenu'
 -- Legacy qb-management exports (AddMoney, GetAccount, Add/RemoveBossMenuItem, ...).
 provide 'qb-management'
 author 'qbcore2'
-version '0.1.0'
+version '0.2.0'
 description 'Job management, applications, employee roster, stash and bonuses for kora_core'
 
 dependency 'kora_lib'
