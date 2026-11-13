@@ -5,7 +5,7 @@ lua54 'yes'
 name 'kora_bossmenu'
 -- Legacy qb-management exports (AddMoney, GetAccount, Add/RemoveBossMenuItem, ...).
 provide 'qb-management'
-author 'qbcore2'
+author 'Kora'
 version '0.2.1'
 description 'Job management, applications, employee roster, stash and bonuses for kora_core'
 
@@ -27,6 +27,7 @@ client_script 'client/main.lua'
 
 files {
     'types.lua',
+    'locales/*.lua',
 }
 
 -- kora_qa: Gherkin test scenarios (converted legacy tests), see [kora]/kora_qa/README.md
