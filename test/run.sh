@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 cd "$(dirname "$0")/.."
+"${LUA:-lua}" test/logging.lua
 "${LUA:-lua}" test/client.lua
 "${LUA:-lua}" test/server.lua
 "${LUA:-lua}" test/contracts.lua

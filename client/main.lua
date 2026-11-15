@@ -269,7 +269,7 @@ local function openBossMenu(roleType)
         appActive = false
 
         if not ok then
-            print(('^1[kora_bossmenu]^7 Could not open the management menu: %s'):format(tostring(err)))
+            Kora.logging.error('menu.open_failed', 'Could not open the management menu', { error = tostring(err) })
             notify(Kora.lang('bossmenu.notify.menu_failed'), 'error')
         end
     end)
