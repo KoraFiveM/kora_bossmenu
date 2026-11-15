@@ -140,12 +140,12 @@ end
 
 CreateThread(function()
     local available = Kora.sql.ready(60000)
-    if not available then return print('^1[kora_bossmenu]^7 kora_sql was not ready; resource disabled.') end
+    if not available then return Kora.logging.error('schema.sql_unavailable', 'kora_sql was not ready; resource disabled') end
     local reports, err = Kora.sql.ensureTables(KoraBossmenuSchema)
-    if err then return print(('^1[kora_bossmenu]^7 schema setup failed: %s'):format(err)) end
+    if err then return Kora.logging.error('schema.setup_failed', 'Bossmenu schema setup failed', { error = tostring(err) }) end
     for _, report in ipairs(reports or {}) do
         for _, warning in ipairs(report.warnings or {}) do
-            print(('^3[kora_bossmenu]^7 schema warning: %s'):format(tostring(warning)))
+            Kora.logging.warn('schema.warning', 'Bossmenu schema warning', { warning = tostring(warning) })
         end
     end
     ready = true
@@ -322,7 +322,7 @@ Kora.callback.register('kora_bossmenu:server:giveBonus', function(src, data)
     end
     if not paid then
         if not exports.kora_banking:AddMoney(row.roleName, amount, 'boss-menu-bonus-refund') then
-            print(('^1[kora_bossmenu]^7 bonus credit failed and society refund failed for %s'):format(row.roleName))
+            Kora.logging.error('bonus.refund_failed', 'Bonus credit failed and society refund failed', { roleName = row.roleName })
         end
         return false, payErr or Kora.lang('bossmenu.server.bonus_failed')
     end
