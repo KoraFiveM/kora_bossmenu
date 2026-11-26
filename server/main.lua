@@ -180,7 +180,7 @@ Kora.callback.register('kora_bossmenu:server:getJobData', function(src, requeste
         jobGrades = grades, employees = employees or {}, applicants = row.applicants,
         questions = row.questions, logs = row.logs, jobName = role.name,
         jobLabel = definition.label or role.name, roleType = roleType,
-        accountBalance = exports.kora_banking:GetAccountBalance(role.name),
+        accountBalance = Kora.bridge.getSocietyAccountBalance(role.name),
     }
 end)
 
@@ -309,7 +309,7 @@ Kora.callback.register('kora_bossmenu:server:giveBonus', function(src, data)
     local amount = math.floor(tonumber(data.amount) or 0)
     if amount <= 0 or type(data.citizenid) ~= 'string' then return false, Kora.lang('bossmenu.server.invalid_bonus') end
     if not isEmployee(data.citizenid, row.roleType, row.roleName) then return false, Kora.lang('bossmenu.server.not_employee') end
-    if not exports.kora_banking:RemoveMoney(row.roleName, amount, 'boss-menu-bonus') then
+    if not Kora.bridge.removeSocietyMoney(row.roleName, amount, 'boss-menu-bonus') then
         return false, Kora.lang('bossmenu.server.insufficient_funds')
     end
 
@@ -321,7 +321,7 @@ Kora.callback.register('kora_bossmenu:server:giveBonus', function(src, data)
         paid, payErr = exports.kora_core:addOfflineMoney(data.citizenid, 'bank', amount)
     end
     if not paid then
-        if not exports.kora_banking:AddMoney(row.roleName, amount, 'boss-menu-bonus-refund') then
+        if not Kora.bridge.addSocietyMoney(row.roleName, amount, 'boss-menu-bonus-refund') then
             Kora.logging.error('bonus.refund_failed', 'Bonus credit failed and society refund failed', { roleName = row.roleName })
         end
         return false, payErr or Kora.lang('bossmenu.server.bonus_failed')
@@ -337,7 +337,7 @@ local function credit(roleType, name, amount, reason)
     if amount <= 0 then return false, Kora.lang('bossmenu.server.positive_amount') end
     local row, err = ensureRole(roleType, name)
     if not row then return false, err end
-    if not exports.kora_banking:AddMoney(name, amount, reason or 'boss-menu-business-credit') then return false, Kora.lang('bossmenu.server.credit_failed') end
+    if not Kora.bridge.addSocietyMoney(name, amount, reason or 'boss-menu-business-credit') then return false, Kora.lang('bossmenu.server.credit_failed') end
     addLog(row, Kora.lang('bossmenu.server.business_credit_log', amount, reason and (' (' .. tostring(reason):sub(1, 100) .. ')') or ''))
     return true
 end
@@ -348,14 +348,14 @@ local function debit(roleType, name, amount, reason)
     if amount <= 0 then return false, Kora.lang('bossmenu.server.positive_amount') end
     local row, err = ensureRole(roleType, name)
     if not row then return false, err end
-    if not exports.kora_banking:RemoveMoney(name, amount, reason or 'boss-menu-business-debit') then return false, Kora.lang('bossmenu.server.insufficient_business_funds') end
+    if not Kora.bridge.removeSocietyMoney(name, amount, reason or 'boss-menu-business-debit') then return false, Kora.lang('bossmenu.server.insufficient_business_funds') end
     addLog(row, Kora.lang('bossmenu.server.business_debit_log', amount, reason and (' (' .. tostring(reason):sub(1, 100) .. ')') or ''))
     return true
 end
 
 local function balance(roleType, name)
     if not roleDefinition(roleType, name) then return nil, Kora.lang('bossmenu.server.unknown_job') end
-    return exports.kora_banking:GetAccountBalance(name)
+    return Kora.bridge.getSocietyAccountBalance(name)
 end
 
 exports('addBusinessMoney', function(jobName, amount, reason) return credit('job', jobName, amount, reason) end)
