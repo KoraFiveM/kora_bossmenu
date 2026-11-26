@@ -60,7 +60,7 @@ local function runExtraAction(roleType, actionId)
 end
 
 local function notify(message, type_)
-    Kora.notify.send({ title = Kora.lang('bossmenu.title'), message = message, type = type_ or 'info' })
+    Kora.bridge.sendNotify({ title = Kora.lang('bossmenu.title'), message = message, type = type_ or 'info' })
 end
 
 local function applicationFields(questions)

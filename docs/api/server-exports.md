@@ -79,7 +79,7 @@ Takes money out of a JOB's society account and logs it. Succeeds only if the acc
 ```lua
 local ok, err = exports.kora_bossmenu:removeBusinessMoney('police', 500, 'equipment order')
 if not ok then
-    return Kora.notify.send(src, { title = 'Orders', message = 'The department cannot afford this.', type = 'error' })
+    return Kora.bridge.sendNotify(src, { title = 'Orders', message = 'The department cannot afford this.', type = 'error' })
 end
 ```
 
